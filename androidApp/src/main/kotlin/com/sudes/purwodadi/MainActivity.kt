@@ -41,13 +41,14 @@ class MainActivity : ComponentActivity() {
                 "register" -> {
                     RegisterScreen(
                         onRegisterSubmitted = { name, email, phone, password ->
-                            // Setelah daftar sukses, kembali ke login
-                            currentScreen = "login"
+                            // PERUBAHAN: Kosongkan bagian ini agar halaman tidak langsung tertutup.
+                            // Biarkan pop-up sukses tampil di RegisterScreen.
                         },
                         onGoogleRegisterClicked = {
                             // Aksi daftar Google
                         },
                         onBackToLoginClicked = {
+                            // Ini akan dipanggil saat tombol "Kembali ke Login" di DALAM POP-up diklik
                             currentScreen = "login"
                         }
                     )

@@ -130,7 +130,8 @@ fun LoginScreen(
                                 Icon(
                                     imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = "Toggle Password Visibility",
-                                    tint = TextSecondary
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -187,7 +188,8 @@ fun LoginScreen(
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = "🌐  Lanjut dengan Google", color = TextPrimary)
+                        Text(text = "G  ", color = Color(0xFFEA4335), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Lanjut dengan Google", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -199,7 +201,7 @@ fun LoginScreen(
                     ) {
                         Text(
                             text = "Belum punya akun? ",
-                            style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                            style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
                             color = TextSecondary
                         )
                         TextButton(
@@ -208,10 +210,7 @@ fun LoginScreen(
                         ) {
                             Text(
                                 text = "Daftar",
-                                style = AppTypography.BodyRegular.copy(
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
+                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
                                 color = GreenDesaPrimary
                             )
                         }

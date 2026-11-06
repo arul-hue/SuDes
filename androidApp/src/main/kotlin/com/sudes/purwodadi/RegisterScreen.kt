@@ -3,10 +3,11 @@ package com.sudes.purwodadi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -15,9 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
@@ -28,218 +29,312 @@ fun RegisterScreen(
     onGoogleRegisterClicked: () -> Unit = {},
     onBackToLoginClicked: () -> Unit = {}
 ) {
-    var fullName by remember { mutableStateOf("") }
+    var namaLengkap by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+    var nomorHp by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var konfirmasiPassword by remember { mutableStateOf("") }
 
-    var isPasswordVisible by remember { mutableStateOf(false) }
-    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+    // State untuk mengontrol visibilitas password
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(GrayBackground)
+            .background(GrayBackground),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
+        // KARTU UTAMA PENDAFTARAN
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(20.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = Color.White,
+            shadowElevation = 6.dp
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = Color.White,
-                shadowElevation = 6.dp
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
+                // Header Hijau di dalam kartu
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    color = GreenDesaPrimary
                 ) {
-                    Box(
+                    Column(
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+                        Text(
+                            text = "Daftar Akun",
+                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Lengkapi data diri untuk membuat akun baru",
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 15.sp)
+                        )
+                    }
+                }
+
+                // Bagian Isi Form dengan Font Ukuran Proporsional
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    // Tombol Lanjut dengan Google
+                    OutlinedButton(
+                        onClick = onGoogleRegisterClicked,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                color = GreenDesaPrimary,
-                                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                            )
-                            .padding(24.dp)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
                     ) {
-                        Column {
-                            Text(
-                                text = "Daftar Akun",
-                                style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 22.sp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Lengkapi data diri untuk membuat akun baru",
-                                style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
-                            )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(text = "G  ", color = Color(0xFFEA4335), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "Lanjut dengan Google", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
                         }
                     }
 
-                    Column(
-                        modifier = Modifier.padding(24.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Pembatas "ATAU ISI DATA DIRI"
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedButton(
-                            onClick = onGoogleRegisterClicked,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(text = "🌐  Lanjut dengan Google", color = TextPrimary)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
-                            Text(text = "  ATAU ISI DATA DIRI  ", style = AppTypography.Caption, color = TextSecondary)
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(text = "Nama Lengkap", style = AppTypography.LabelForm, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = fullName,
-                            onValueChange = { fullName = it },
-                            placeholder = { Text("Masukkan nama lengkap Anda", color = TextPlaceholder) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor, thickness = 1.dp)
+                        Text(
+                            text = "  ATAU ISI DATA DIRI  ",
+                            style = AppTypography.Caption.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                            color = TextSecondary
                         )
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor, thickness = 1.dp)
+                    }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(text = "Email", style = AppTypography.LabelForm, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            placeholder = { Text("Masukkan email Anda", color = TextPlaceholder) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                        )
+                    RegisterField(
+                        label = "Nama Lengkap",
+                        value = namaLengkap,
+                        onValueChange = { namaLengkap = it },
+                        placeholder = "Masukkan nama lengkap Anda"
+                    )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                    RegisterField(
+                        label = "Email",
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = "Masukkan email Anda"
+                    )
 
-                        Text(text = "Nomor HP", style = AppTypography.LabelForm, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = phone,
-                            onValueChange = { phone = it },
-                            placeholder = { Text("0812xxxxxxxx", color = TextPlaceholder) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-                        )
+                    RegisterField(
+                        label = "Nomor HP",
+                        value = nomorHp,
+                        onValueChange = { nomorHp = it },
+                        placeholder = "0812xxxxxxxx"
+                    )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                    RegisterField(
+                        label = "Password",
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = "Minimal 8 karakter",
+                        isPassword = true,
+                        passwordVisible = passwordVisible,
+                        onVisibilityChanged = { passwordVisible = !passwordVisible }
+                    )
 
-                        Text(text = "Password", style = AppTypography.LabelForm, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            placeholder = { Text("Minimal 8 karakter", color = TextPlaceholder) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true,
-                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            trailingIcon = {
-                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                                    Icon(
-                                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Toggle",
-                                        tint = TextSecondary
-                                    )
-                                }
+                    RegisterField(
+                        label = "Konfirmasi Password",
+                        value = konfirmasiPassword,
+                        onValueChange = { konfirmasiPassword = it },
+                        placeholder = "Ulangi password Anda",
+                        isPassword = true,
+                        passwordVisible = confirmPasswordVisible,
+                        onVisibilityChanged = { confirmPasswordVisible = !confirmPasswordVisible }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            if (email.isNotBlank() && password.isNotBlank()) {
+                                showSuccessDialog = true
+                                onRegisterSubmitted(namaLengkap, email, nomorHp, password)
                             }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(
+                            text = "Daftar Sekarang",
+                            style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         )
+                    }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(text = "Konfirmasi Password", style = AppTypography.LabelForm, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
-                            placeholder = { Text("Ulangi password Anda", color = TextPlaceholder) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true,
-                            visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            trailingIcon = {
-                                IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
-                                    Icon(
-                                        imageVector = if (isConfirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Toggle",
-                                        tint = TextSecondary
-                                    )
-                                }
-                            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Sudah punya akun? ",
+                            style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                            color = TextSecondary
                         )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Button(
-                            onClick = { onRegisterSubmitted(fullName, email, phone, password) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
-                        ) {
-                            Text(text = "Daftar Sekarang", style = AppTypography.ButtonText)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        TextButton(
+                            onClick = onBackToLoginClicked,
+                            contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
-                                text = "Sudah punya akun? ",
-                                style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
-                                color = TextSecondary
+                                text = "Masuk",
+                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                                color = GreenDesaPrimary
                             )
-                            TextButton(
-                                onClick = onBackToLoginClicked,
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    text = "Masuk",
-                                    style = AppTypography.BodyRegular.copy(
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = GreenDesaPrimary
-                                )
-                            }
                         }
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
         }
+
+        // POPUP SUKSES PENDAFTARAN
+        if (showSuccessDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color(0xFFF0FDF4),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(68.dp),
+                            shape = CircleShape,
+                            color = GreenDesaLight
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Success",
+                                    tint = GreenDesaPrimary,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Text(
+                            text = "Pendaftaran Berhasil!",
+                            style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                            color = GreenDesaPrimary,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Akun Anda berhasil dibuat.\nSilakan masuk untuk melanjutkan.",
+                            style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = {
+                                showSuccessDialog = false
+                                onBackToLoginClicked()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                        ) {
+                            Text(
+                                text = "Kembali ke Login",
+                                style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Komponen Pendukung TextField Pendaftaran dengan Ikon Mata yang Berfungsi
+@Composable
+fun RegisterField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onVisibilityChanged: () -> Unit = {}
+) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
+        Text(
+            text = label,
+            style = AppTypography.LabelForm.copy(fontSize = 15.sp),
+            color = TextPrimary
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = {
+                Text(
+                    placeholder,
+                    color = TextPlaceholder,
+                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp)
+                )
+            },
+            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = onVisibilityChanged) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = "Toggle Password Visibility",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            } else null
+        )
     }
 }
