@@ -58,10 +58,24 @@ class MainActivity : ComponentActivity() {
                     HomeScreen(
                         userName = "Sahal",
                         onServiceSelected = { serviceName ->
-                            // Aksi ketika salah satu surat diklik
+                            // Jika Surat Keterangan Usaha diklik, buka SuratUsahaScreen
+                            if (serviceName == "Surat Keterangan Usaha") {
+                                currentScreen = "surat_usaha"
+                            }
                         },
                         onTabSelected = { tabIndex ->
                             // Aksi navigasi bawah (Beranda, Status, Profil)
+                        }
+                    )
+                }
+                "surat_usaha" -> {
+                    SuratUsahaScreen(
+                        onBackClicked = {
+                            // Kembali ke beranda
+                            currentScreen = "home"
+                        },
+                        onSubmitSuccess = {
+                            // Aksi tambahan setelah berhasil submit jika diperlukan
                         }
                     )
                 }
