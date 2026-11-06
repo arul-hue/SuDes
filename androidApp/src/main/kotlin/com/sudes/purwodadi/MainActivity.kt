@@ -9,10 +9,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // State untuk mengatur halaman aktif (default "login")
-            var currentScreen by remember { mutableStateOf("login") }
+            // State untuk mengatur halaman aktif (dimulai dari "splash")
+            var currentScreen by remember { mutableStateOf("splash") }
 
             when (currentScreen) {
+                "splash" -> {
+                    SplashScreen(
+                        onTimeout = {
+                            // Setelah animasi splash selesai, pindah ke halaman login
+                            currentScreen = "login"
+                        }
+                    )
+                }
                 "login" -> {
                     LoginScreen(
                         onLoginClicked = { email, password ->
