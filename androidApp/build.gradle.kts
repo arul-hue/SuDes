@@ -20,7 +20,7 @@ dependencies {
 }
 
 android {
-    namespace = "org.example.project"
+    namespace = "org.example.c"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
