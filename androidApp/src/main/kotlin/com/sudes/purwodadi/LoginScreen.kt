@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,9 +22,6 @@ import com.sudes.purwodadi.ui.theme.AppTypography
 import com.sudes.purwodadi.ui.theme.GrayBackground
 import com.sudes.purwodadi.ui.theme.GreenDesaPrimary
 
-// ==============================================================================
-// TAHAP 2: HALAMAN MASUK AKUN (SESUAI DESAIN FIGMA)
-// ==============================================================================
 @Composable
 fun LoginScreen(
     onLoginClicked: (String, String) -> Unit = { _, _ -> },
@@ -29,7 +29,6 @@ fun LoginScreen(
     onForgotPasswordClicked: () -> Unit = {},
     onRegisterClicked: () -> Unit = {}
 ) {
-    // State input form
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -40,64 +39,48 @@ fun LoginScreen(
             .background(GrayBackground),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // ----------------------------------------------------------------------
-        // 1. HEADER ATAS (WARNA HIJAU DESA + LOGO SUDES)
-        // ----------------------------------------------------------------------
+        // HEADER ATAS HIJAU DESA
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.38f)
+                .height(240.dp)
                 .background(GreenDesaPrimary),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Shield Icon Placeholder / Container Logo White
                 Surface(
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(64.dp),
                     shape = RoundedCornerShape(16.dp),
                     color = Color.White
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        // Teks darurat pengganti logo tameng (Shield)
-                        Text(
-                            text = "🛡️",
-                            fontSize = 36.sp
-                        )
+                        Text(text = "🛡️", fontSize = 32.sp)
                     }
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Text(
                     text = "SuDes",
-                    style = AppTypography.HeadingLarge.copy(color = Color.White)
+                    style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = "Layanan Surat Online Desa",
-                    style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f))
+                    style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
                 )
             }
         }
 
-        // ----------------------------------------------------------------------
-        // 2. KARTU PUTIH FORM LOGIN (OVERLAP / FLOATING CARD)
-        // ----------------------------------------------------------------------
+        // KARTU UTAMA FORM LOGIN
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.62f)
-                .padding(horizontal = 20.dp),
-            contentAlignment = Alignment.TopCenter
+                .padding(horizontal = 24.dp)
+                .offset(y = (-32.dp))
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-30).dp), // Efek menumpuk ke atas header hijau
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
                 shadowElevation = 6.dp
@@ -111,9 +94,7 @@ fun LoginScreen(
                         style = AppTypography.HeadingLarge,
                         color = Color(0xFF1E293B)
                     )
-
                     Spacer(modifier = Modifier.height(4.dp))
-
                     Text(
                         text = "Silakan masuk menggunakan email terdaftar",
                         style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
@@ -122,12 +103,8 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Input Field Email
-                    Text(
-                        text = "Email",
-                        style = AppTypography.LabelForm,
-                        color = Color(0xFF1E293B)
-                    )
+                    // Email / No HP
+                    Text(text = "Email", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = email,
@@ -135,21 +112,13 @@ fun LoginScreen(
                         placeholder = { Text("Masukkan email Anda", color = Color.LightGray) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF8FAFC),
-                            focusedContainerColor = Color.White
-                        )
+                        singleLine = true
                     )
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Input Field Password
-                    Text(
-                        text = "Password",
-                        style = AppTypography.LabelForm,
-                        color = Color(0xFF1E293B)
-                    )
+                    // Password dengan Ikon Mata
+                    Text(text = "Password", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = password,
@@ -162,32 +131,37 @@ fun LoginScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                                Text(if (isPasswordVisible) "👁️" else "🙈")
+                                Icon(
+                                    imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = "Toggle Password Visibility",
+                                    tint = Color.Gray
+                                )
                             }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF8FAFC),
-                            focusedContainerColor = Color.White
-                        )
+                        }
                     )
 
-                    // Link Lupa Password
+                    // Tombol Lupa Password di kanan bawah input password
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
                         contentAlignment = Alignment.CenterEnd
                     ) {
-                        TextButton(onClick = onForgotPasswordClicked) {
+                        TextButton(
+                            onClick = onForgotPasswordClicked,
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
                             Text(
                                 text = "Lupa Password?",
-                                style = AppTypography.LabelForm.copy(fontWeight = FontWeight.Bold),
+                                style = AppTypography.BodyRegular.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                                 color = GreenDesaPrimary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Tombol Masuk Utama
+                    // Tombol Masuk Hijau
                     Button(
                         onClick = { onLoginClicked(email, password) },
                         modifier = Modifier
@@ -196,31 +170,24 @@ fun LoginScreen(
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                     ) {
-                        Text(
-                            text = "Masuk",
-                            style = AppTypography.ButtonText
-                        )
+                        Text(text = "Masuk", style = AppTypography.ButtonText)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Pemisah ATAU
+                    // Garis ATAU
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
-                        Text(
-                            text = "  ATAU  ",
-                            style = AppTypography.Caption,
-                            color = Color.Gray
-                        )
+                        Text(text = "  ATAU  ", style = AppTypography.Caption, color = Color.Gray)
                         HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Tombol Lanjut dengan Google
+                    // Tombol Google
                     OutlinedButton(
                         onClick = onGoogleLoginClicked,
                         modifier = Modifier
@@ -233,7 +200,7 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Link Daftar Akun
+                    // Belum punya akun? Daftar
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
