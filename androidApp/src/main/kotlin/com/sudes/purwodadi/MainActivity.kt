@@ -4,26 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
-import com.sudes.purwodadi.ui.theme.AppTypography // Menjaga konsistensi tema
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // State untuk mengatur halaman mana yang sedang aktif
-            // Nilai awal: "login"
+            // State untuk mengatur halaman aktif (default "login")
             var currentScreen by remember { mutableStateOf("login") }
 
-            // Logika perpindahan antar layar (Routing sederhana)
             when (currentScreen) {
                 "login" -> {
                     LoginScreen(
                         onLoginClicked = { email, password ->
-                            // Aksi ketika tombol Masuk ditekan
-                            // (Nanti bisa dihubungkan ke backend/Firebase)
+                            // Jika login berhasil, pindah ke halaman "home" (Beranda)
+                            currentScreen = "home"
                         },
                         onGoogleLoginClicked = {
-                            // Aksi login Google
+                            // Aksi Google Login
                         },
                         onForgotPasswordClicked = {
                             currentScreen = "forgot_password"
@@ -36,11 +33,11 @@ class MainActivity : ComponentActivity() {
                 "register" -> {
                     RegisterScreen(
                         onRegisterSubmitted = { name, email, phone, password ->
-                            // Aksi pendaftaran berhasil, kembali ke login
+                            // Setelah daftar sukses, kembali ke login
                             currentScreen = "login"
                         },
                         onGoogleRegisterClicked = {
-                            // Aksi daftar dengan Google
+                            // Aksi daftar Google
                         },
                         onBackToLoginClicked = {
                             currentScreen = "login"
@@ -54,6 +51,17 @@ class MainActivity : ComponentActivity() {
                         },
                         onBackToLoginClicked = {
                             currentScreen = "login"
+                        }
+                    )
+                }
+                "home" -> {
+                    HomeScreen(
+                        userName = "Sahal",
+                        onServiceSelected = { serviceName ->
+                            // Aksi ketika salah satu surat diklik
+                        },
+                        onTabSelected = { tabIndex ->
+                            // Aksi navigasi bawah (Beranda, Status, Profil)
                         }
                     )
                 }

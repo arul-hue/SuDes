@@ -20,9 +20,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sudes.purwodadi.ui.theme.AppTypography
-import com.sudes.purwodadi.ui.theme.GrayBackground
-import com.sudes.purwodadi.ui.theme.GreenDesaPrimary
+import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun RegisterScreen(
@@ -55,7 +53,6 @@ fun RegisterScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // KARTU UTAMA DENGAN HEADER HIJAU DI DALAMNYA
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -65,7 +62,6 @@ fun RegisterScreen(
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Kotak Hijau di dalam kartu atas
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -88,11 +84,9 @@ fun RegisterScreen(
                         }
                     }
 
-                    // Isi form di bawah header hijau
                     Column(
                         modifier = Modifier.padding(24.dp)
                     ) {
-                        // Tombol Google Register
                         OutlinedButton(
                             onClick = onGoogleRegisterClicked,
                             modifier = Modifier
@@ -100,30 +94,28 @@ fun RegisterScreen(
                                 .height(48.dp),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text(text = "🌐  Lanjut dengan Google", color = Color(0xFF334155))
+                            Text(text = "🌐  Lanjut dengan Google", color = TextPrimary)
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Garis ATAU ISI DATA DIRI
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
-                            Text(text = "  ATAU ISI DATA DIRI  ", style = AppTypography.Caption, color = Color.Gray)
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
+                            Text(text = "  ATAU ISI DATA DIRI  ", style = AppTypography.Caption, color = TextSecondary)
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Nama Lengkap
-                        Text(text = "Nama Lengkap", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                        Text(text = "Nama Lengkap", style = AppTypography.LabelForm, color = TextPrimary)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = fullName,
                             onValueChange = { fullName = it },
-                            placeholder = { Text("Masukkan nama lengkap Anda", color = Color.LightGray) },
+                            placeholder = { Text("Masukkan nama lengkap Anda", color = TextPlaceholder) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true
@@ -131,13 +123,12 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Email
-                        Text(text = "Email", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                        Text(text = "Email", style = AppTypography.LabelForm, color = TextPrimary)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
-                            placeholder = { Text("Masukkan email Anda", color = Color.LightGray) },
+                            placeholder = { Text("Masukkan email Anda", color = TextPlaceholder) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true,
@@ -146,13 +137,12 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Nomor HP
-                        Text(text = "Nomor HP", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                        Text(text = "Nomor HP", style = AppTypography.LabelForm, color = TextPrimary)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = phone,
                             onValueChange = { phone = it },
-                            placeholder = { Text("0812xxxxxxxx", color = Color.LightGray) },
+                            placeholder = { Text("0812xxxxxxxx", color = TextPlaceholder) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true,
@@ -161,13 +151,12 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Password
-                        Text(text = "Password", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                        Text(text = "Password", style = AppTypography.LabelForm, color = TextPrimary)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            placeholder = { Text("Minimal 8 karakter", color = Color.LightGray) },
+                            placeholder = { Text("Minimal 8 karakter", color = TextPlaceholder) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true,
@@ -178,7 +167,7 @@ fun RegisterScreen(
                                     Icon(
                                         imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                         contentDescription = "Toggle",
-                                        tint = Color.Gray
+                                        tint = TextSecondary
                                     )
                                 }
                             }
@@ -186,13 +175,12 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Konfirmasi Password
-                        Text(text = "Konfirmasi Password", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                        Text(text = "Konfirmasi Password", style = AppTypography.LabelForm, color = TextPrimary)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            placeholder = { Text("Ulangi password Anda", color = Color.LightGray) },
+                            placeholder = { Text("Ulangi password Anda", color = TextPlaceholder) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true,
@@ -203,7 +191,7 @@ fun RegisterScreen(
                                     Icon(
                                         imageVector = if (isConfirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                         contentDescription = "Toggle",
-                                        tint = Color.Gray
+                                        tint = TextSecondary
                                     )
                                 }
                             }
@@ -211,7 +199,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Tombol Daftar Sekarang
                         Button(
                             onClick = { onRegisterSubmitted(fullName, email, phone, password) },
                             modifier = Modifier
@@ -225,7 +212,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Tautan Masuk
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
@@ -234,7 +220,7 @@ fun RegisterScreen(
                             Text(
                                 text = "Sudah punya akun? ",
                                 style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
-                                color = Color.Gray
+                                color = TextSecondary
                             )
                             TextButton(
                                 onClick = onBackToLoginClicked,

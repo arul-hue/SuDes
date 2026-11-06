@@ -18,9 +18,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sudes.purwodadi.ui.theme.AppTypography
-import com.sudes.purwodadi.ui.theme.GrayBackground
-import com.sudes.purwodadi.ui.theme.GreenDesaPrimary
+import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun LoginScreen(
@@ -92,24 +90,23 @@ fun LoginScreen(
                     Text(
                         text = "Masuk Akun",
                         style = AppTypography.HeadingLarge,
-                        color = Color(0xFF1E293B)
+                        color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Silakan masuk menggunakan email terdaftar",
                         style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
-                        color = Color.Gray
+                        color = TextSecondary
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Email / No HP
-                    Text(text = "Email", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                    Text(text = "Email", style = AppTypography.LabelForm, color = TextPrimary)
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = { Text("Masukkan email Anda", color = Color.LightGray) },
+                        placeholder = { Text("Masukkan email Anda", color = TextPlaceholder) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true
@@ -117,13 +114,12 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Password dengan Ikon Mata
-                    Text(text = "Password", style = AppTypography.LabelForm, color = Color(0xFF1E293B))
+                    Text(text = "Password", style = AppTypography.LabelForm, color = TextPrimary)
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = { Text("Masukkan password Anda", color = Color.LightGray) },
+                        placeholder = { Text("Masukkan password Anda", color = TextPlaceholder) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true,
@@ -134,13 +130,12 @@ fun LoginScreen(
                                 Icon(
                                     imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = "Toggle Password Visibility",
-                                    tint = Color.Gray
+                                    tint = TextSecondary
                                 )
                             }
                         }
                     )
 
-                    // Tombol Lupa Password di kanan bawah input password
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -161,7 +156,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Tombol Masuk Hijau
                     Button(
                         onClick = { onLoginClicked(email, password) },
                         modifier = Modifier
@@ -175,19 +169,17 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Garis ATAU
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
-                        Text(text = "  ATAU  ", style = AppTypography.Caption, color = Color.Gray)
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
+                        Text(text = "  ATAU  ", style = AppTypography.Caption, color = TextSecondary)
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Tombol Google
                     OutlinedButton(
                         onClick = onGoogleLoginClicked,
                         modifier = Modifier
@@ -195,12 +187,11 @@ fun LoginScreen(
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = "🌐  Lanjut dengan Google", color = Color(0xFF334155))
+                        Text(text = "🌐  Lanjut dengan Google", color = TextPrimary)
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Belum punya akun? Daftar
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -209,7 +200,7 @@ fun LoginScreen(
                         Text(
                             text = "Belum punya akun? ",
                             style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
-                            color = Color.Gray
+                            color = TextSecondary
                         )
                         TextButton(
                             onClick = onRegisterClicked,
