@@ -79,6 +79,12 @@ class MainActivity : ComponentActivity() {
                             },
                             onUbahEmailClicked = {
                                 currentScreen = "ubah_email" // <--- Ini yang membuat layarnya terbuka saat diklik
+                            },
+                            onGantiNoHpClicked = {
+                                currentScreen = "ganti_nohp"
+                            },
+                            onGantiPasswordClicked = {
+                                currentScreen = "ganti_password"
                             }
                         )
                     }
@@ -91,6 +97,18 @@ class MainActivity : ComponentActivity() {
                     }
                     "ubah_email" -> {
                         UbahEmailScreen(
+                            onBackClicked = { currentScreen = "profile" },
+                            onSaveSuccess = { currentScreen = "profile" }
+                        )
+                    }
+                    "ganti_nohp" -> {
+                        GantiNoHpScreen(
+                            onBackClicked = { currentScreen = "profile" },
+                            onSaveSuccess = { currentScreen = "profile" }
+                        )
+                    }
+                    "ganti_password" -> {
+                        GantiPasswordScreen(
                             onBackClicked = { currentScreen = "profile" },
                             onSaveSuccess = { currentScreen = "profile" }
                         )

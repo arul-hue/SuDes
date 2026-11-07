@@ -29,7 +29,9 @@ fun ProfileScreen(
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
-    onUbahEmailClicked: () -> Unit = {}
+    onUbahEmailClicked: () -> Unit = {},
+    onGantiNoHpClicked: () -> Unit = {},
+    onGantiPasswordClicked: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
     val scrollState = rememberScrollState()
@@ -209,8 +211,8 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         ProfileMenuItem(title = "Ubah Email Google", onClick = onUbahEmailClicked)
-                        ProfileMenuItem(title = "Ganti Nomor Handphone", onClick = { /* Aksi Ganti No HP */ })
-                        ProfileMenuItem(title = "Ganti Password", onClick = { /* Aksi Ganti Password */ })
+                        ProfileMenuItem(title = "Ganti Nomor Handphone", onClick = onGantiNoHpClicked)
+                        ProfileMenuItem(title = "Ganti Password", onClick = onGantiPasswordClicked)
                     }
                 }
 

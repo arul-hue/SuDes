@@ -1,11 +1,11 @@
 package com.sudes.purwodadi
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +31,25 @@ fun UbahEmailScreen(
 ) {
     var emailSaatIni by remember { mutableStateOf("sahal@gmail.com") }
     var emailBaru by remember { mutableStateOf("") }
-    var passwordKonfirmasi by remember { mutableStateOf("") }
-    var isSavedSuccess by remember { mutableStateOf(false) }
+
+    // State untuk pop-up OTP
+    var showOtpDialog by remember { mutableStateOf(false) }
+    var otpCode by remember { mutableStateOf("") }
+
+    // State untuk Timer Hitung Mundur (60 Detik)
+    var timeLeft by remember { mutableStateOf(60) }
+    var canResend by remember { mutableStateOf(false) }
+
+    // Efek hitung mundur otomatis saat pop-up OTP terbuka
+    LaunchedEffect(showOtpDialog, timeLeft) {
+        if (showOtpDialog && timeLeft > 0) {
+            delay(1000L)
+            timeLeft--
+        } else if (timeLeft == 0) {
+            canResend = true
+        }
+    }
+
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -78,7 +97,8 @@ fun UbahEmailScreen(
                 value = emailSaatIni,
                 onValueChange = {},
                 placeholder = "",
-                enabled = false
+                enabled = false,
+                keyboardType = KeyboardType.Email
             )
 
             // Field 2: Email Baru
@@ -87,16 +107,8 @@ fun UbahEmailScreen(
                 value = emailBaru,
                 onValueChange = { emailBaru = it },
                 placeholder = "Masukkan email baru yang aktif",
-                enabled = true
-            )
-
-            // Field 3: Password Akun
-            UbahEmailFormTextField(
-                label = "Password Akun SuDes",
-                value = passwordKonfirmasi,
-                onValueChange = { passwordKonfirmasi = it },
-                placeholder = "Masukkan password untuk konfirmasi",
-                enabled = true
+                enabled = true,
+                keyboardType = KeyboardType.Email
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -121,7 +133,7 @@ fun UbahEmailScreen(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Anda akan diminta verifikasi ulang melalui email baru setelah disimpan.",
+                        text = "Kode verifikasi OTP akan dikirimkan ke email baru Anda.",
                         style = AppTypography.BodyRegular.copy(
                             fontSize = 13.sp,
                             color = Color(0xFF92400E)
@@ -132,11 +144,13 @@ fun UbahEmailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Tombol Simpan Perubahan Email
+            // Tombol Kirim OTP
             Button(
                 onClick = {
-                    if (emailBaru.isNotBlank() && passwordKonfirmasi.isNotBlank()) {
-                        isSavedSuccess = true
+                    if (emailBaru.isNotBlank()) {
+                        timeLeft = 60 // Reset timer ke 60 detik
+                        canResend = false
+                        showOtpDialog = true
                     }
                 },
                 modifier = Modifier
@@ -146,15 +160,15 @@ fun UbahEmailScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
             ) {
                 Text(
-                    text = "Simpan Perubahan Email",
+                    text = "Kirim Kode OTP",
                     style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 )
             }
         }
     }
 
-    // Pop-up Dialog Sukses Pengiriman Verifikasi Email (Gaya seperti ForgotPassword)
-    if (isSavedSuccess) {
+    // Pop-up Dialog Masukkan OTP & Timer 60 Detik
+    if (showOtpDialog) {
         AlertDialog(
             onDismissRequest = { },
             containerColor = Color(0xFFF0FDF4),
@@ -173,7 +187,7 @@ fun UbahEmailScreen(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Email,
-                                contentDescription = "Email Sent",
+                                contentDescription = "OTP",
                                 tint = GreenDesaPrimary,
                                 modifier = Modifier.size(36.dp)
                             )
@@ -181,7 +195,7 @@ fun UbahEmailScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Periksa Email Baru Anda",
+                        text = "Verifikasi Kode OTP",
                         style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
                         color = GreenDesaPrimary
                     )
@@ -193,32 +207,70 @@ fun UbahEmailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Tautan verifikasi telah dikirimkan ke",
-                        style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
+                        text = "Masukkan 4 digit kode OTP yang dikirim ke:",
+                        style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
                         color = TextSecondary,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = emailBaru.ifBlank { "emailbaru@gmail.com" },
-                        style = AppTypography.HeadingMedium.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingMedium.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Silakan cek kotak masuk atau folder spam untuk mengonfirmasi perubahan email.",
-                        style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
-                        color = TextSecondary,
-                        textAlign = TextAlign.Center
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Kotak Input OTP
+                    OutlinedTextField(
+                        value = otpCode,
+                        onValueChange = { if (it.length <= 4) otpCode = it },
+                        placeholder = { Text("0 0 0 0", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                        textStyle = AppTypography.HeadingLarge.copy(fontSize = 24.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, color = TextPrimary),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .width(180.dp)
+                            .height(60.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = GreenDesaPrimary,
+                            unfocusedBorderColor = GrayBorder
+                        )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Bagian Timer & Tombol Kirim Ulang
+                    if (!canResend) {
+                        Text(
+                            text = "Kirim ulang kode dalam ${timeLeft} detik",
+                            style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                            color = TextSecondary
+                        )
+                    } else {
+                        TextButton(
+                            onClick = {
+                                timeLeft = 60
+                                canResend = false
+                            }
+                        ) {
+                            Text(
+                                text = "Kirim Ulang OTP",
+                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GreenDesaPrimary)
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        isSavedSuccess = false
-                        onSaveSuccess()
+                        if (otpCode.length == 4) {
+                            showOtpDialog = false
+                            onSaveSuccess()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,8 +279,8 @@ fun UbahEmailScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                 ) {
                     Text(
-                        text = "Kembali ke Profil",
-                        style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        text = "Konfirmasi & Ubah Email",
+                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     )
                 }
             }
@@ -242,7 +294,8 @@ fun UbahEmailFormTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    enabled: Boolean
+    enabled: Boolean,
+    keyboardType: KeyboardType
 ) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(
@@ -263,6 +316,7 @@ fun UbahEmailFormTextField(
                 )
             },
             textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
