@@ -75,8 +75,10 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "surat_usaha"
                                 } else if (serviceName == "Surat Keterangan Domisili") {
                                     currentScreen = "surat_domisili" // <- Menuju ke Surat Domisili
+                                } else if (serviceName == "Surat Keterangan Kehilangan") {
+                                    currentScreen = "surat_kehilangan" // <- Tambahkan ini
                                 }
-                            } ,
+                            },
                             onTabSelected = { tabIndex ->
                                 // Aksi navigasi bawah (Beranda, Status, Profil)
                             }
@@ -92,8 +94,20 @@ class MainActivity : ComponentActivity() {
                                 // Aksi tambahan setelah berhasil submit jika diperlukan
                             }
                         )
-                    }"surat_domisili" -> {
+                    }
+                    "surat_domisili" -> {
                         SuratDomisiliScreen(
+                            onBackClicked = {
+                                // Kembali ke beranda
+                                currentScreen = "home"
+                            },
+                            onSubmitSuccess = {
+                                // Aksi tambahan setelah berhasil submit jika diperlukan
+                            }
+                        )
+                    }
+                    "surat_kehilangan" -> {
+                        SuratKehilanganScreen(
                             onBackClicked = {
                                 // Kembali ke beranda
                                 currentScreen = "home"
