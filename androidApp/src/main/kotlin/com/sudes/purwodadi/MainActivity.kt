@@ -85,6 +85,18 @@ class MainActivity : ComponentActivity() {
                             },
                             onGantiPasswordClicked = {
                                 currentScreen = "ganti_password"
+                            },
+                            onVideoTutorialClicked = {
+                                currentScreen = "video_tutorial"
+                            },
+                            onBantuanFaqClicked = {
+                                currentScreen = "bantuan_faq"
+                            },
+                            onTentangAplikasiClicked = {
+                                currentScreen = "tentang_aplikasi"
+                            },
+                            onBackClicked = {
+                                currentScreen = "home"
                             }
                         )
                     }
@@ -112,6 +124,15 @@ class MainActivity : ComponentActivity() {
                             onBackClicked = { currentScreen = "profile" },
                             onSaveSuccess = { currentScreen = "profile" }
                         )
+                    }
+                    "video_tutorial" -> {
+                        VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
+                    }
+                    "bantuan_faq" -> {
+                        BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })
+                    }
+                    "tentang_aplikasi" -> {
+                        TentangAplikasiScreen(onBackClicked = { currentScreen = "profile" })
                     }
                     "surat_usaha" -> {
                         SuratUsahaScreen(

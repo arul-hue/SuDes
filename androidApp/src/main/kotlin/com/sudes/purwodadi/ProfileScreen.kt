@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,9 +28,13 @@ fun ProfileScreen(
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
+    onBackClicked: () -> Unit = {},
     onUbahEmailClicked: () -> Unit = {},
     onGantiNoHpClicked: () -> Unit = {},
-    onGantiPasswordClicked: () -> Unit = {}
+    onGantiPasswordClicked: () -> Unit = {},
+    onVideoTutorialClicked: () -> Unit = {},
+    onBantuanFaqClicked: () -> Unit = {},
+    onTentangAplikasiClicked: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
     val scrollState = rememberScrollState()
@@ -101,7 +104,7 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            // HEADER PROFIL (Avatar & Info Warga)[cite: 11]
+            // HEADER PROFIL (Avatar & Info Warga)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -146,7 +149,7 @@ fun ProfileScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // KARTU 1: DATA DIRI[cite: 11]
+                // KARTU 1: DATA DIRI
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -191,7 +194,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 2: PENGATURAN AKUN[cite: 11]
+                // KARTU 2: PENGATURAN AKUN
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -218,7 +221,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 3: BANTUAN & PANDUAN[cite: 11]
+                // KARTU 3: BANTUAN & PANDUAN (Digabung di sini)
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -237,18 +240,17 @@ fun ProfileScreen(
                         HorizontalDivider(color = BorderColor, thickness = 1.dp)
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        ProfileMenuItem(title = "Video Tutorial Penggunaan SuDes", onClick = { /* Aksi Tutorial */ })
-                        ProfileMenuItem(title = "Bantuan & Pertanyaan Umum", onClick = { /* Aksi FAQ */ })
-                        ProfileMenuItem(title = "Tentang Aplikasi SuDes", onClick = { /* Aksi Tentang */ })
+                        ProfileMenuItem(title = "Video Tutorial SuDes", onClick = onVideoTutorialClicked)
+                        ProfileMenuItem(title = "Bantuan & Pertanyaan Umum", onClick = onBantuanFaqClicked)
+                        ProfileMenuItem(title = "Tentang Aplikasi SuDes", onClick = onTentangAplikasiClicked)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // TOMBOL KELUAR DARI AKUN[cite: 11]
                 // TOMBOL KELUAR DARI AKUN
                 OutlinedButton(
-                    onClick = { showLogoutDialog = true }, // Memunculkan pop-up konfirmasi
+                    onClick = { showLogoutDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -309,13 +311,13 @@ fun ProfileScreen(
                     Button(
                         onClick = {
                             showLogoutDialog = false
-                            onLogoutClicked() // Menjalankan fungsi keluar akun yang sebenarnya
+                            onLogoutClicked()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)) // Warna merah untuk aksi keluar
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
                     ) {
                         Text(text = "Ya, Keluar", style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White))
                     }

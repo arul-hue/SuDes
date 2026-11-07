@@ -20,36 +20,36 @@ val TextPlaceholder = Color(0xFF94A3B8)        // Warna Placeholder Input
 val BorderColor = Color(0xFFE2E8F0)            // Warna Outlined Border / Divider
 
 // ==============================================================================
-// 2. TIPOGRAFI RAMAH LANSIA (ACCESSIBILITY-FIRST)
+// 2. TIPOGRAFI RAMAH LANSIA (ACCESSIBILITY-FIRST - DIPERBESAR)
 // ==============================================================================
 object AppTypography {
     val HeadingLarge = TextStyle(
-        fontSize = 26.sp,
+        fontSize = 28.sp, // Diperbesar dari 26.sp
         fontWeight = FontWeight.Bold
     )
 
     val HeadingMedium = TextStyle(
-        fontSize = 18.sp,
+        fontSize = 20.sp, // Diperbesar dari 18.sp
         fontWeight = FontWeight.Bold
     )
 
     val BodyRegular = TextStyle(
-        fontSize = 15.sp,
+        fontSize = 16.sp, // Diperbesar dari 15.sp agar lebih lega dibaca
         fontWeight = FontWeight.Normal
     )
 
     val LabelForm = TextStyle(
-        fontSize = 14.sp,
+        fontSize = 15.sp, // Diperbesar dari 14.sp
         fontWeight = FontWeight.SemiBold
     )
 
     val ButtonText = TextStyle(
-        fontSize = 16.sp,
+        fontSize = 17.sp, // Diperbesar dari 16.sp
         fontWeight = FontWeight.Bold
     )
 
     val Caption = TextStyle(
-        fontSize = 12.sp,
+        fontSize = 13.sp, // Diperbesar dari 12.sp
         fontWeight = FontWeight.Normal
     )
 }
