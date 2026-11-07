@@ -14,14 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
@@ -75,12 +73,12 @@ fun RegisterScreen(
                     ) {
                         Text(
                             text = "Daftar Akun",
-                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                            style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Lengkapi data diri untuk membuat akun baru",
-                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 15.sp)
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f))
                         )
                     }
                 }
@@ -89,7 +87,7 @@ fun RegisterScreen(
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    // Tombol Masuk dengan Google (Menggunakan ic_google)
+                    // Tombol Masuk dengan Google
                     OutlinedButton(
                         onClick = onGoogleRegisterClicked,
                         modifier = Modifier
@@ -112,9 +110,8 @@ fun RegisterScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Masuk dengan Google",
-                                color = Color.DarkGray,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp
+                                style = AppTypography.LabelForm,
+                                color = Color.DarkGray
                             )
                         }
                     }
@@ -129,7 +126,7 @@ fun RegisterScreen(
                         HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor, thickness = 1.dp)
                         Text(
                             text = "  ATAU ISI DATA DIRI  ",
-                            style = AppTypography.Caption.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
                             color = TextSecondary
                         )
                         HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor, thickness = 1.dp)
@@ -195,7 +192,7 @@ fun RegisterScreen(
                     ) {
                         Text(
                             text = "Daftar Sekarang",
-                            style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            style = AppTypography.ButtonText
                         )
                     }
 
@@ -208,7 +205,7 @@ fun RegisterScreen(
                     ) {
                         Text(
                             text = "Sudah punya akun? ",
-                            style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                            style = AppTypography.Caption,
                             color = TextSecondary
                         )
                         TextButton(
@@ -217,7 +214,7 @@ fun RegisterScreen(
                         ) {
                             Text(
                                 text = "Masuk",
-                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                                style = AppTypography.LabelForm.copy(fontWeight = FontWeight.Bold),
                                 color = GreenDesaPrimary
                             )
                         }
@@ -264,7 +261,7 @@ fun RegisterScreen(
 
                         Text(
                             text = "Pendaftaran Berhasil!",
-                            style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                            style = AppTypography.HeadingLarge,
                             color = GreenDesaPrimary,
                             textAlign = TextAlign.Center
                         )
@@ -273,7 +270,7 @@ fun RegisterScreen(
 
                         Text(
                             text = "Akun Anda berhasil dibuat.\nSilakan masuk untuk melanjutkan.",
-                            style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
+                            style = AppTypography.BodyRegular,
                             color = TextSecondary,
                             textAlign = TextAlign.Center
                         )
@@ -293,7 +290,7 @@ fun RegisterScreen(
                         ) {
                             Text(
                                 text = "Kembali ke Login",
-                                style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                style = AppTypography.ButtonText
                             )
                         }
                     }
@@ -317,7 +314,7 @@ fun RegisterField(
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
         Text(
             text = label,
-            style = AppTypography.LabelForm.copy(fontSize = 15.sp),
+            style = AppTypography.LabelForm,
             color = TextPrimary
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -328,23 +325,19 @@ fun RegisterField(
                 Text(
                     placeholder,
                     color = TextPlaceholder,
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp)
+                    style = AppTypography.BodyRegular
                 )
             },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                // Container tetap putih solid
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 disabledContainerColor = Color.White,
-
-                // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
                 unfocusedBorderColor = GrayBorder,
-                focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
-
+                focusedBorderColor = GreenDesaPrimary,
                 focusedLabelColor = GreenDesaPrimary,
                 cursorColor = GreenDesaPrimary
             ),

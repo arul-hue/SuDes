@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -76,7 +75,7 @@ fun UbahEmailScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Ubah Email Google",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -125,19 +124,14 @@ fun UbahEmailScreen(
                 ) {
                     Text(
                         text = "Catatan Keamanan:",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB45309)
-                        )
+                        style = AppTypography.LabelForm,
+                        color = Color(0xFFB45309)
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Kode verifikasi OTP akan dikirimkan ke email baru Anda.",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            color = Color(0xFF92400E)
-                        )
+                        style = AppTypography.BodyRegular,
+                        color = Color(0xFF92400E)
                     )
                 }
             }
@@ -161,7 +155,7 @@ fun UbahEmailScreen(
             ) {
                 Text(
                     text = "Kirim Kode OTP",
-                    style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = AppTypography.ButtonText
                 )
             }
         }
@@ -196,7 +190,7 @@ fun UbahEmailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Verifikasi Kode OTP",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingLarge,
                         color = GreenDesaPrimary
                     )
                 }
@@ -208,14 +202,14 @@ fun UbahEmailScreen(
                 ) {
                     Text(
                         text = "Masukkan 4 digit kode OTP yang dikirim ke:",
-                        style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                        style = AppTypography.BodyRegular,
                         color = TextSecondary,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = emailBaru.ifBlank { "emailbaru@gmail.com" },
-                        style = AppTypography.HeadingMedium.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingMedium,
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
@@ -226,7 +220,7 @@ fun UbahEmailScreen(
                         value = otpCode,
                         onValueChange = { if (it.length <= 4) otpCode = it },
                         placeholder = { Text("0 0 0 0", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                        textStyle = AppTypography.HeadingLarge.copy(fontSize = 24.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, color = TextPrimary),
+                        textStyle = AppTypography.HeadingLarge.copy(textAlign = TextAlign.Center, color = TextPrimary),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .width(180.dp)
@@ -246,7 +240,7 @@ fun UbahEmailScreen(
                     if (!canResend) {
                         Text(
                             text = "Kirim ulang kode dalam ${timeLeft} detik",
-                            style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                            style = AppTypography.BodyRegular,
                             color = TextSecondary
                         )
                     } else {
@@ -258,7 +252,7 @@ fun UbahEmailScreen(
                         ) {
                             Text(
                                 text = "Kirim Ulang OTP",
-                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GreenDesaPrimary)
+                                style = AppTypography.ButtonText.copy(color = GreenDesaPrimary)
                             )
                         }
                     }
@@ -280,7 +274,7 @@ fun UbahEmailScreen(
                 ) {
                     Text(
                         text = "Konfirmasi & Ubah Email",
-                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        style = AppTypography.ButtonText
                     )
                 }
             }
@@ -300,7 +294,7 @@ fun UbahEmailFormTextField(
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(
             text = label,
-            style = AppTypography.LabelForm.copy(fontSize = 15.sp),
+            style = AppTypography.LabelForm,
             color = TextPrimary
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -312,10 +306,10 @@ fun UbahEmailFormTextField(
                 Text(
                     placeholder,
                     color = TextPlaceholder,
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp)
+                    style = AppTypography.BodyRegular
                 )
             },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),

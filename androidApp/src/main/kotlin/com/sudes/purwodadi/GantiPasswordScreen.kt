@@ -17,13 +17,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +61,7 @@ fun GantiPasswordScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Ganti Password",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -116,19 +114,14 @@ fun GantiPasswordScreen(
                 ) {
                     Text(
                         text = "Tips Keamanan:",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB45309)
-                        )
+                        style = AppTypography.LabelForm,
+                        color = Color(0xFFB45309)
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Gunakan kombinasi huruf, angka, dan simbol untuk keamanan akun.",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            color = Color(0xFF92400E)
-                        )
+                        style = AppTypography.BodyRegular,
+                        color = Color(0xFF92400E)
                     )
                 }
             }
@@ -150,7 +143,7 @@ fun GantiPasswordScreen(
             ) {
                 Text(
                     text = "Simpan Password Baru",
-                    style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = AppTypography.ButtonText
                 )
             }
         }
@@ -185,7 +178,7 @@ fun GantiPasswordScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Berhasil Disimpan!",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingLarge,
                         color = GreenDesaPrimary
                     )
                 }
@@ -193,7 +186,7 @@ fun GantiPasswordScreen(
             text = {
                 Text(
                     text = "Password Anda telah berhasil diperbarui.",
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -213,7 +206,7 @@ fun GantiPasswordScreen(
                 ) {
                     Text(
                         text = "Kembali ke Profil",
-                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        style = AppTypography.ButtonText
                     )
                 }
             }
@@ -234,7 +227,7 @@ fun PasswordFormTextField(
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(
             text = label,
-            style = AppTypography.LabelForm.copy(fontSize = 15.sp),
+            style = AppTypography.LabelForm,
             color = TextPrimary
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -245,10 +238,10 @@ fun PasswordFormTextField(
                 Text(
                     placeholder,
                     color = TextPlaceholder,
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp)
+                    style = AppTypography.BodyRegular
                 )
             },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             // Mengatur visibilitas teks berdasarkan state passwordVisible
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

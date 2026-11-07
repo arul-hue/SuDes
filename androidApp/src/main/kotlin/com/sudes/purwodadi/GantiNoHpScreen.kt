@@ -15,11 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -76,7 +74,7 @@ fun GantiNoHpScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Ganti Nomor Handphone",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -125,19 +123,14 @@ fun GantiNoHpScreen(
                 ) {
                     Text(
                         text = "Catatan Verifikasi:",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB45309)
-                        )
+                        style = AppTypography.LabelForm,
+                        color = Color(0xFFB45309)
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Kode verifikasi OTP akan dikirimkan ke nomor WhatsApp/HP baru Anda.",
-                        style = AppTypography.BodyRegular.copy(
-                            fontSize = 13.sp,
-                            color = Color(0xFF92400E)
-                        )
+                        style = AppTypography.BodyRegular,
+                        color = Color(0xFF92400E)
                     )
                 }
             }
@@ -161,7 +154,7 @@ fun GantiNoHpScreen(
             ) {
                 Text(
                     text = "Kirim Kode OTP",
-                    style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = AppTypography.ButtonText
                 )
             }
         }
@@ -196,7 +189,7 @@ fun GantiNoHpScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Verifikasi Kode OTP",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingLarge,
                         color = GreenDesaPrimary
                     )
                 }
@@ -208,14 +201,14 @@ fun GantiNoHpScreen(
                 ) {
                     Text(
                         text = "Masukkan 4 digit kode OTP yang dikirim ke:",
-                        style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                        style = AppTypography.BodyRegular,
                         color = TextSecondary,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = noHpBaru.ifBlank { "0812XXXXXX" },
-                        style = AppTypography.HeadingMedium.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingMedium,
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
@@ -226,7 +219,7 @@ fun GantiNoHpScreen(
                         value = otpCode,
                         onValueChange = { if (it.length <= 4) otpCode = it },
                         placeholder = { Text("0 0 0 0", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                        textStyle = AppTypography.HeadingLarge.copy(fontSize = 24.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, color = TextPrimary),
+                        textStyle = AppTypography.HeadingLarge.copy(textAlign = TextAlign.Center, color = TextPrimary),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .width(180.dp)
@@ -246,20 +239,19 @@ fun GantiNoHpScreen(
                     if (!canResend) {
                         Text(
                             text = "Kirim ulang kode dalam ${timeLeft} detik",
-                            style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                            style = AppTypography.BodyRegular,
                             color = TextSecondary
                         )
                     } else {
                         TextButton(
                             onClick = {
-                                // Aksi saat tombol kirim ulang ditekan
                                 timeLeft = 60
                                 canResend = false
                             }
                         ) {
                             Text(
                                 text = "Kirim Ulang OTP",
-                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GreenDesaPrimary)
+                                style = AppTypography.ButtonText.copy(color = GreenDesaPrimary)
                             )
                         }
                     }
@@ -281,7 +273,7 @@ fun GantiNoHpScreen(
                 ) {
                     Text(
                         text = "Konfirmasi & Simpan Nomor",
-                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        style = AppTypography.ButtonText
                     )
                 }
             }
@@ -301,7 +293,7 @@ fun NoHpFormTextField(
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(
             text = label,
-            style = AppTypography.LabelForm.copy(fontSize = 15.sp),
+            style = AppTypography.LabelForm,
             color = TextPrimary
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -313,10 +305,10 @@ fun NoHpFormTextField(
                 Text(
                     placeholder,
                     color = TextPlaceholder,
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp)
+                    style = AppTypography.BodyRegular
                 )
             },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),

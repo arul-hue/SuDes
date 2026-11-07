@@ -14,9 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
@@ -36,7 +34,7 @@ fun HomeScreen(
             ) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = "Beranda") },
-                    label = { Text("Beranda", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Beranda", style = AppTypography.Caption) },
                     selected = selectedTab == 0,
                     onClick = {
                         selectedTab = 0
@@ -52,7 +50,7 @@ fun HomeScreen(
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Description, contentDescription = "Status") },
-                    label = { Text("Status", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Status", style = AppTypography.Caption) },
                     selected = selectedTab == 1,
                     onClick = {
                         selectedTab = 1
@@ -68,7 +66,7 @@ fun HomeScreen(
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
-                    label = { Text("Profil", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Profil", style = AppTypography.Caption) },
                     selected = selectedTab == 2,
                     onClick = {
                         selectedTab = 2
@@ -121,12 +119,12 @@ fun HomeScreen(
                     Column {
                         Text(
                             text = "Selamat Datang,",
-                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.85f))
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = userName,
-                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                     }
                 }
@@ -148,12 +146,12 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = "Layanan Surat Online Desa",
-                            style = AppTypography.HeadingMedium.copy(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            style = AppTypography.HeadingMedium.copy(color = Color.White)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Pilih jenis surat yang ingin Anda ajukan di bawah ini",
-                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f))
                         )
                     }
                 }
@@ -162,13 +160,13 @@ fun HomeScreen(
 
                 // SECTION TITLE: Layanan Surat Keterangan
                 Text(
-                    text = "Layanan Surat Keterangan",
-                    style = AppTypography.HeadingLarge.copy(fontSize = 17.sp, fontWeight = FontWeight.Bold),
+                    text = "Lima Layanan Surat Keterangan",
+                    style = AppTypography.HeadingMedium,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // DAFTAR 5 MENU LAYANAN SURAT SESUAI GAMBAR
+                // DAFTAR 5 MENU LAYANAN SURAT
                 ServiceItemCard(
                     title = "Surat Keterangan Usaha",
                     subtitle = "Pengajuan surat izin usaha desa",
@@ -251,13 +249,13 @@ fun ServiceItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = AppTypography.HeadingMedium.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                    style = AppTypography.HeadingMedium,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary
                 )
             }

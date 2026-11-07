@@ -19,9 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 // Fungsi helper unik untuk tanggal hari ini pada Surat Kehilangan
@@ -83,7 +81,7 @@ fun SuratKehilanganScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Surat Keterangan Kehilangan",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -112,17 +110,17 @@ fun SuratKehilanganScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "⚡  ", fontSize = 18.sp)
+                    Text(text = "⚡  ", style = AppTypography.HeadingMedium)
                     Text(
                         text = "Isi Otomatis dari Profil",
-                        style = AppTypography.LabelForm.copy(color = GreenDesaPrimary, fontSize = 15.sp)
+                        style = AppTypography.LabelForm.copy(color = GreenDesaPrimary)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 1: DATA DIRI PELAPOR[cite: 4]
+            // KARTU 1: DATA DIRI PELAPOR
             KehilanganCardSection(title = "DATA DIRI PELAPOR") {
                 KehilanganFormTextField(label = "Nama Lengkap", value = namaLengkap, onValueChange = { namaLengkap = it }, placeholder = "Masukkan nama lengkap")
                 KehilanganFormTextField(label = "NIK", value = nik, onValueChange = { nik = it }, placeholder = "Masukkan 16 digit NIK")
@@ -135,7 +133,7 @@ fun SuratKehilanganScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 2: DETAIL KEHILANGAN[cite: 5]
+            // KARTU 2: DETAIL KEHILANGAN
             KehilanganCardSection(title = "DETAIL KEHILANGAN") {
                 KehilanganFormTextField(label = "Hari Kejadian", value = hariKejadian, onValueChange = { hariKejadian = it }, placeholder = "Contoh: Kamis")
                 KehilanganFormTextField(label = "Tanggal Kejadian", value = tanggalKejadian, onValueChange = { tanggalKejadian = it }, placeholder = "Contoh: 05 November 2026")
@@ -145,7 +143,7 @@ fun SuratKehilanganScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 3: SURAT PENGANTAR RT[cite: 5]
+            // KARTU 3: SURAT PENGANTAR RT
             KehilanganCardSection(title = "SURAT PENGANTAR RT") {
                 OutlinedButton(
                     onClick = { /* Aksi Upload File */ },
@@ -157,29 +155,29 @@ fun SuratKehilanganScreen(
                 ) {
                     Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Upload", tint = TextSecondary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Unggah Foto/Scan Surat Pengantar RT", color = TextSecondary, style = AppTypography.BodyRegular.copy(fontSize = 15.sp))
+                    Text(text = "Unggah Foto/Scan Surat Pengantar RT", color = TextSecondary, style = AppTypography.BodyRegular)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 4: INFORMASI SURAT[cite: 5]
+            // KARTU 4: INFORMASI SURAT
             KehilanganCardSection(title = "INFORMASI SURAT") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text(text = "Nomor Surat (Diisi Admin)", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
+                        Text(text = "Nomor Surat (Diisi Admin)", style = AppTypography.Caption, color = TextSecondary)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "140/ ... /LK/II/VII.02.03/2026", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextPlaceholder)
+                        Text(text = "-", style = AppTypography.BodyRegular, color = TextPlaceholder)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "Tanggal", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
+                        Text(text = "Tanggal", style = AppTypography.Caption, color = TextSecondary)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = getKehilanganDateFormatted(),
-                            style = AppTypography.LabelForm.copy(fontSize = 14.sp),
+                            style = AppTypography.LabelForm,
                             color = GreenDesaPrimary
                         )
                     }
@@ -188,7 +186,7 @@ fun SuratKehilanganScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TOMBOL KIRIM PENGAJUAN[cite: 5]
+            // TOMBOL KIRIM PENGAJUAN
             Button(
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
@@ -197,7 +195,7 @@ fun SuratKehilanganScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
             ) {
-                Text(text = "Kirim Pengajuan Surat", style = AppTypography.ButtonText.copy(fontSize = 16.sp))
+                Text(text = "Kirim Pengajuan Surat", style = AppTypography.ButtonText)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -214,41 +212,42 @@ fun SuratKehilanganScreen(
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Surface(modifier = Modifier.size(56.dp), shape = CircleShape, color = Color(0xFFFEF3C7)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(text = "!", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
+                            Text(text = "!", style = AppTypography.HeadingLarge, color = Color(0xFFD97706))
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Kirim Pengajuan Surat?", style = AppTypography.HeadingLarge.copy(fontSize = 18.sp), color = TextPrimary)
+                    Text(text = "Kirim Pengajuan Surat?", style = AppTypography.HeadingMedium, color = TextPrimary)
                 }
             },
             text = {
-                Text(text = "Pastikan data dan dokumen pengantar RT yang Anda masukkan sudah benar.", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextSecondary, textAlign = TextAlign.Center)
+                Text(text = "Pastikan data dan dokumen pengantar RT yang Anda masukkan sudah benar.", style = AppTypography.BodyRegular, color = TextSecondary, textAlign = TextAlign.Center)
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showConfirmDialog = false
-                        isSubmittedSuccess = true // Lanjut memunculkan pop-up sukses
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
-                ) {
-                    Text(text = "Ya, Kirim Sekarang", style = AppTypography.ButtonText.copy(fontSize = 15.sp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            showConfirmDialog = false
+                            isSubmittedSuccess = true // Lanjut memunculkan pop-up sukses
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(text = "Ya, Kirim Sekarang", style = AppTypography.ButtonText)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { showConfirmDialog = false },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(text = "Periksa Kembali", color = TextPrimary, style = AppTypography.ButtonText)
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
             },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = { showConfirmDialog = false },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(text = "Periksa Kembali", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
-                }
-            }
+            dismissButton = {}
         )
     }
 
@@ -267,11 +266,11 @@ fun SuratKehilanganScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = "Pengajuan Berhasil!", style = AppTypography.HeadingLarge.copy(fontSize = 20.sp), color = TextPrimary)
+                    Text(text = "Pengajuan Berhasil!", style = AppTypography.HeadingMedium, color = TextPrimary)
                 }
             },
             text = {
-                Text(text = "Dokumen Anda telah masuk ke sistem desa dan menunggu verifikasi.", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextSecondary, textAlign = TextAlign.Center)
+                Text(text = "Dokumen Anda telah masuk ke sistem desa dan menunggu verifikasi.", style = AppTypography.BodyRegular, color = TextSecondary, textAlign = TextAlign.Center)
             },
             confirmButton = {
                 Button(
@@ -283,7 +282,7 @@ fun SuratKehilanganScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                 ) {
-                    Text(text = "Kembali ke Beranda", style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold))
+                    Text(text = "Kembali ke Beranda", style = AppTypography.ButtonText)
                 }
             }
         )
@@ -304,7 +303,7 @@ fun KehilanganCardSection(title: String, content: @Composable ColumnScope.() -> 
         ) {
             Text(
                 text = title,
-                style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                style = AppTypography.HeadingMedium,
                 color = TextPrimary
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -319,26 +318,22 @@ fun KehilanganCardSection(title: String, content: @Composable ColumnScope.() -> 
 @Composable
 fun KehilanganFormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
-        Text(text = label, style = AppTypography.LabelForm.copy(fontSize = 15.sp), color = TextPrimary)
+        Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = TextPlaceholder, style = AppTypography.BodyRegular.copy(fontSize = 15.sp)) },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            placeholder = { Text(placeholder, color = TextPlaceholder, style = AppTypography.BodyRegular) },
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                // Container tetap putih solid
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 disabledContainerColor = Color.White,
-
-                // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
                 unfocusedBorderColor = GrayBorder,
-                focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
-
+                focusedBorderColor = GreenDesaPrimary,
                 focusedLabelColor = GreenDesaPrimary,
                 cursorColor = GreenDesaPrimary
             )
@@ -350,7 +345,7 @@ fun KehilanganFormTextField(label: String, value: String, onValueChange: (String
 @Composable
 fun KehilanganFormDropdownField(label: String, selectedValue: String) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
-        Text(text = label, style = AppTypography.LabelForm.copy(fontSize = 15.sp), color = TextPrimary)
+        Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedButton(
             onClick = { /* Aksi Buka Pilihan Dropdown */ },
@@ -366,8 +361,8 @@ fun KehilanganFormDropdownField(label: String, selectedValue: String) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular.copy(fontSize = 15.sp))
-                Text(text = "▼", color = TextSecondary, fontSize = 12.sp)
+                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular)
+                Text(text = "▼", color = TextSecondary, style = AppTypography.Caption)
             }
         }
     }

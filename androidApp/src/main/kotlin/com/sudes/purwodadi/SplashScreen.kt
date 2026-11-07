@@ -5,16 +5,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -44,11 +40,10 @@ fun SplashScreen(
         ) {
             Spacer(modifier = Modifier.height(1.dp))
 
-            // 1. BAGIAN ATAS: Logo & Judul SuDes (Ukuran Diperbesar)
+            // 1. BAGIAN ATAS: Logo & Judul SuDes
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // KODE BARU (SETELAH DIGANTI DENGAN LOGO GAMBAR):
                 Surface(
                     modifier = Modifier.size(110.dp),
                     shape = RoundedCornerShape(26.dp),
@@ -57,24 +52,20 @@ fun SplashScreen(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Image(
-                            painter = painterResource(id = R.drawable.logo_sudes), // Mengambil gambar dari folder drawable (R = res)
+                            painter = painterResource(id = R.drawable.logo_sudes), // Mengambil gambar dari folder drawable
                             contentDescription = "Logo SuDes",
-                            modifier = Modifier.size(140.dp) // Sesuaikan ukuran gambar di dalam kotak putih
+                            modifier = Modifier.size(140.dp)
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(18.dp))
                 Text(
                     text = "SuDes",
-                    style = AppTypography.HeadingLarge.copy(
-                        color = Color.White,
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    style = AppTypography.HeadingLarge.copy(color = Color.White)
                 )
             }
 
-            // 2. BAGIAN TENGAH: Indikator Loading & Teks (Ukuran Diperbesar & Proporsional)
+            // 2. BAGIAN TENGAH: Indikator Loading & Teks
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -88,20 +79,14 @@ fun SplashScreen(
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = "Memuat layanan...",
-                    style = AppTypography.BodyRegular.copy(
-                        color = Color.White.copy(alpha = 0.95f),
-                        fontSize = 15.sp
-                    )
+                    style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.95f))
                 )
             }
 
-            // 3. BAGIAN BAWAH: Teks Copyright (Disesuaikan agar lebih jelas)
+            // 3. BAGIAN BAWAH: Teks Copyright
             Text(
                 text = "Pemerintah Desa Purwodadi Simpang © 2026",
-                style = AppTypography.Caption.copy(
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 13.sp
-                )
+                style = AppTypography.Caption.copy(color = Color.White.copy(alpha = 0.8f))
             )
         }
     }

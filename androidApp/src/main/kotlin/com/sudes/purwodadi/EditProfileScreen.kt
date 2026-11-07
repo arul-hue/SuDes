@@ -1,6 +1,5 @@
 package com.sudes.purwodadi
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +65,7 @@ fun EditProfileScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Edit Data Diri",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -134,7 +132,7 @@ fun EditProfileScreen(
             ) {
                 Text(
                     text = "Simpan Perubahan",
-                    style = AppTypography.ButtonText.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = AppTypography.ButtonText
                 )
             }
 
@@ -159,13 +157,17 @@ fun EditProfileScreen(
                         color = Color(0xFFFEF3C7) // Kuning lembut peringatan
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(text = "?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
+                            Text(
+                                text = "?",
+                                style = AppTypography.HeadingLarge,
+                                color = Color(0xFFD97706)
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Simpan Perubahan Data?",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingMedium,
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
@@ -174,41 +176,42 @@ fun EditProfileScreen(
             text = {
                 Text(
                     text = "Pastikan data diri yang Anda masukkan sudah benar",
-                    style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showConfirmDialog = false
-                        isSavedSuccess = true // Lanjut memunculkan pop-up sukses
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
-                ) {
-                    Text(text = "Ya, Simpan", style = AppTypography.ButtonText.copy(fontSize = 15.sp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            showConfirmDialog = false
+                            isSavedSuccess = true // Lanjut memunculkan pop-up sukses
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(text = "Ya, Simpan", style = AppTypography.ButtonText)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { showConfirmDialog = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(text = "Periksa Kembali", color = TextPrimary, style = AppTypography.ButtonText)
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
             },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = { showConfirmDialog = false },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(text = "Periksa Kembali", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
-                }
-            }
+            dismissButton = {}
         )
     }
 
@@ -241,7 +244,7 @@ fun EditProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Berhasil Disimpan!",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                        style = AppTypography.HeadingMedium,
                         color = TextPrimary
                     )
                 }
@@ -249,7 +252,7 @@ fun EditProfileScreen(
             text = {
                 Text(
                     text = "Data diri Anda telah berhasil diperbarui.",
-                    style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -269,7 +272,7 @@ fun EditProfileScreen(
                 ) {
                     Text(
                         text = "Kembali ke Profil",
-                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        style = AppTypography.ButtonText
                     )
                 }
             }
@@ -277,30 +280,26 @@ fun EditProfileScreen(
     }
 }
 
-// Komponen Input TextField Khusus Edit Profil (Background Putih Konsisten)
+// Komponen Input TextField Khusus Edit Profil (Menggunakan Root Typo)
 @Composable
 fun EditProfileTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
-        Text(text = label, style = AppTypography.LabelForm.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium), color = TextPrimary)
+        Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = TextPlaceholder, style = AppTypography.BodyRegular.copy(fontSize = 14.sp)) },
-            textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
+            placeholder = { Text(placeholder, color = TextPlaceholder, style = AppTypography.BodyRegular) },
+            textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                // Container tetap putih solid
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 disabledContainerColor = Color.White,
-
-                // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
                 unfocusedBorderColor = GrayBorder,
-                focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
-
+                focusedBorderColor = GreenDesaPrimary,
                 focusedLabelColor = GreenDesaPrimary,
                 cursorColor = GreenDesaPrimary
             )
@@ -312,7 +311,7 @@ fun EditProfileTextField(label: String, value: String, onValueChange: (String) -
 @Composable
 fun EditProfileDropdownField(label: String, selectedValue: String) {
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
-        Text(text = label, style = AppTypography.LabelForm.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium), color = TextPrimary)
+        Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedButton(
             onClick = { /* Aksi Buka Pilihan Dropdown */ },
@@ -328,8 +327,8 @@ fun EditProfileDropdownField(label: String, selectedValue: String) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular.copy(fontSize = 15.sp))
-                Text(text = "▼", color = TextSecondary, fontSize = 12.sp)
+                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular)
+                Text(text = "▼", color = TextSecondary, style = AppTypography.Caption)
             }
         }
     }

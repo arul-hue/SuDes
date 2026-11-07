@@ -19,7 +19,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
@@ -50,14 +49,12 @@ fun LoginScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ==========================================
                 // LOGO SUDES
-                // ==========================================
                 Surface(
                     modifier = Modifier.size(90.dp),
                     shape = RoundedCornerShape(22.dp),
-                    color = Color.White, // Latar belakang putih
-                    shadowElevation = 6.dp // Efek bayangan agar tampak timbul
+                    color = Color.White,
+                    shadowElevation = 6.dp
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Image(
@@ -70,12 +67,12 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "SuDes",
-                    style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    style = AppTypography.HeadingLarge.copy(color = Color.White)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Layanan Surat Online Desa",
-                    style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
+                    style = AppTypography.Caption.copy(color = Color.White.copy(alpha = 0.9f))
                 )
             }
         }
@@ -105,7 +102,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Silakan masuk menggunakan email terdaftar",
-                        style = AppTypography.BodyRegular.copy(fontSize = 13.sp),
+                        style = AppTypography.Caption,
                         color = TextSecondary
                     )
 
@@ -116,20 +113,17 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = { Text("Masukkan email Anda", color = TextPlaceholder) },
+                        placeholder = { Text("Masukkan email Anda", color = TextPlaceholder, style = AppTypography.BodyRegular) },
+                        textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            // Container tetap putih solid
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White,
                             disabledContainerColor = Color.White,
-
-                            // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
                             unfocusedBorderColor = GrayBorder,
-                            focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
-
+                            focusedBorderColor = GreenDesaPrimary,
                             focusedLabelColor = GreenDesaPrimary,
                             cursorColor = GreenDesaPrimary
                         )
@@ -142,22 +136,19 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = { Text("Masukkan password Anda", color = TextPlaceholder) },
+                        placeholder = { Text("Masukkan password Anda", color = TextPlaceholder, style = AppTypography.BodyRegular) },
+                        textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true,
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
-                            // Container tetap putih solid
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White,
                             disabledContainerColor = Color.White,
-
-                            // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
                             unfocusedBorderColor = GrayBorder,
-                            focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
-
+                            focusedBorderColor = GreenDesaPrimary,
                             focusedLabelColor = GreenDesaPrimary,
                             cursorColor = GreenDesaPrimary
                         ),
@@ -185,7 +176,7 @@ fun LoginScreen(
                         ) {
                             Text(
                                 text = "Lupa Password?",
-                                style = AppTypography.BodyRegular.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                                style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
                                 color = GreenDesaPrimary
                             )
                         }
@@ -217,7 +208,7 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Tombol Masuk dengan Google (Menggunakan ic_google)
+                    // Tombol Masuk dengan Google
                     OutlinedButton(
                         onClick = onGoogleLoginClicked,
                         modifier = Modifier
@@ -240,15 +231,15 @@ fun LoginScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Masuk dengan Google",
-                                color = Color.DarkGray,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp
+                                style = AppTypography.LabelForm,
+                                color = Color.DarkGray
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // DIPERBAIKI: Menggunakan Arrangement.Center pada Row agar teks berada di tengah secara horizontal
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -256,7 +247,7 @@ fun LoginScreen(
                     ) {
                         Text(
                             text = "Belum punya akun? ",
-                            style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                            style = AppTypography.Caption,
                             color = TextSecondary
                         )
                         TextButton(
@@ -265,7 +256,7 @@ fun LoginScreen(
                         ) {
                             Text(
                                 text = "Daftar",
-                                style = AppTypography.ButtonText.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                                style = AppTypography.LabelForm.copy(fontWeight = FontWeight.Bold),
                                 color = GreenDesaPrimary
                             )
                         }

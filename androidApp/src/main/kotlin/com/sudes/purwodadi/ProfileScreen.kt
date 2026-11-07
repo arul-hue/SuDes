@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
@@ -48,7 +47,7 @@ fun ProfileScreen(
             ) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = "Beranda") },
-                    label = { Text("Beranda", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Beranda", style = AppTypography.Caption) },
                     selected = selectedTab == 0,
                     onClick = {
                         selectedTab = 0
@@ -64,7 +63,7 @@ fun ProfileScreen(
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Description, contentDescription = "Status") },
-                    label = { Text("Status", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Status", style = AppTypography.Caption) },
                     selected = selectedTab == 1,
                     onClick = {
                         selectedTab = 1
@@ -80,7 +79,7 @@ fun ProfileScreen(
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
-                    label = { Text("Profil", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    label = { Text("Profil", style = AppTypography.Caption) },
                     selected = selectedTab == 2,
                     onClick = {
                         selectedTab = 2
@@ -133,12 +132,12 @@ fun ProfileScreen(
                     Column {
                         Text(
                             text = userName,
-                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                            style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = userRole,
-                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.85f))
                         )
                     }
                 }
@@ -166,7 +165,7 @@ fun ProfileScreen(
                         ) {
                             Text(
                                 text = "DATA DIRI",
-                                style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                                style = AppTypography.HeadingMedium,
                                 color = TextPrimary
                             )
                             IconButton(onClick = onEditClicked, modifier = Modifier.size(24.dp)) {
@@ -206,7 +205,7 @@ fun ProfileScreen(
                     ) {
                         Text(
                             text = "PENGATURAN AKUN",
-                            style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                            style = AppTypography.HeadingMedium,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +220,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 3: BANTUAN & PANDUAN (Digabung di sini)
+                // KARTU 3: BANTUAN & PANDUAN
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -233,7 +232,7 @@ fun ProfileScreen(
                     ) {
                         Text(
                             text = "BANTUAN & PANDUAN",
-                            style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                            style = AppTypography.HeadingMedium,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -262,7 +261,7 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = "Keluar dari Akun",
-                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
+                        style = AppTypography.ButtonText.copy(color = Color(0xFFDC2626))
                     )
                 }
 
@@ -290,13 +289,13 @@ fun ProfileScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Keluar dari Akun?", style = AppTypography.HeadingLarge.copy(fontSize = 18.sp), color = TextPrimary)
+                    Text(text = "Keluar dari Akun?", style = AppTypography.HeadingMedium, color = TextPrimary)
                 }
             },
             text = {
                 Text(
                     text = "Apakah Anda yakin ingin keluar dari aplikasi Desa Purwodadi Simpang?",
-                    style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -319,7 +318,7 @@ fun ProfileScreen(
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
                     ) {
-                        Text(text = "Ya, Keluar", style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White))
+                        Text(text = "Ya, Keluar", style = AppTypography.ButtonText.copy(color = Color.White))
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -331,7 +330,7 @@ fun ProfileScreen(
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = "Batal", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
+                        Text(text = "Batal", color = TextPrimary, style = AppTypography.ButtonText)
                     }
                 }
             },
@@ -351,17 +350,17 @@ fun ProfileDataRow(label: String, value: String) {
     ) {
         Text(
             text = label,
-            style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextSecondary),
+            style = AppTypography.BodyRegular.copy(color = TextSecondary),
             modifier = Modifier.width(120.dp)
         )
         Row(modifier = Modifier.weight(1f)) {
             Text(
                 text = ": ",
-                style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextSecondary)
+                style = AppTypography.BodyRegular.copy(color = TextSecondary)
             )
             Text(
                 text = value,
-                style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextPrimary, fontWeight = FontWeight.Medium)
+                style = AppTypography.BodyRegular.copy(color = TextPrimary, fontWeight = FontWeight.Medium)
             )
         }
     }
@@ -384,7 +383,7 @@ fun ProfileMenuItem(title: String, onClick: () -> Unit) {
         ) {
             Text(
                 text = title,
-                style = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary)
+                style = AppTypography.BodyRegular.copy(color = TextPrimary)
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,

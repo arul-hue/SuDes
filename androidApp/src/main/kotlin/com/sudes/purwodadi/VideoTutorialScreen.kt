@@ -14,9 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
 
 data class VideoTutorialItem(
@@ -61,7 +59,7 @@ fun VideoTutorialScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Video Tutorial SuDes",
-                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                        style = AppTypography.HeadingMedium.copy(color = Color.White)
                     )
                 }
             }
@@ -77,7 +75,7 @@ fun VideoTutorialScreen(
         ) {
             Text(
                 text = "Pilih video panduan untuk mulai menonton:",
-                style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                style = AppTypography.BodyRegular,
                 color = TextSecondary,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -133,13 +131,13 @@ fun VideoCardItem(video: VideoTutorialItem) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = video.title,
-                    style = AppTypography.HeadingMedium.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                    style = AppTypography.HeadingMedium,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = video.description,
-                    style = AppTypography.BodyRegular.copy(fontSize = 12.sp),
+                    style = AppTypography.BodyRegular,
                     color = TextSecondary
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -149,8 +147,7 @@ fun VideoCardItem(video: VideoTutorialItem) {
                 ) {
                     Text(
                         text = video.duration,
-                        style = AppTypography.BodyRegular.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                        color = GreenDesaPrimary,
+                        style = AppTypography.Caption.copy(color = GreenDesaPrimary),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
