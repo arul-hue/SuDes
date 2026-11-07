@@ -1,5 +1,8 @@
 package com.sudes.purwodadi
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +21,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sudes.purwodadi.ui.theme.*
+
+// Fungsi helper untuk mengambil tanggal hari ini dengan format Indonesia
+fun getUsahaTodayFormatted(): String {
+    val currentDate = LocalDate.now()
+    val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("id", "ID"))
+    return currentDate.format(formatter)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -255,7 +265,11 @@ fun SuratUsahaScreen(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(text = "Tanggal", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = "05 November 2026", style = AppTypography.LabelForm.copy(fontSize = 14.sp), color = GreenDesaPrimary)
+                            Text(
+                                text = getUsahaTodayFormatted(),
+                                style = AppTypography.LabelForm.copy(fontSize = 14.sp),
+                                color = GreenDesaPrimary
+                            )
                         }
                     }
                 }
@@ -329,6 +343,9 @@ fun SuratUsahaScreen(
                 ) {
                     Text(text = "Ya, Kirim Sekarang", style = AppTypography.ButtonText.copy(fontSize = 15.sp))
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
             },
             dismissButton = {
                 OutlinedButton(

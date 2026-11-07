@@ -73,8 +73,10 @@ class MainActivity : ComponentActivity() {
                                 // Jika Surat Keterangan Usaha diklik, buka SuratUsahaScreen
                                 if (serviceName == "Surat Keterangan Usaha") {
                                     currentScreen = "surat_usaha"
+                                } else if (serviceName == "Surat Keterangan Domisili") {
+                                    currentScreen = "surat_domisili" // <- Menuju ke Surat Domisili
                                 }
-                            },
+                            } ,
                             onTabSelected = { tabIndex ->
                                 // Aksi navigasi bawah (Beranda, Status, Profil)
                             }
@@ -82,6 +84,16 @@ class MainActivity : ComponentActivity() {
                     }
                     "surat_usaha" -> {
                         SuratUsahaScreen(
+                            onBackClicked = {
+                                // Kembali ke beranda
+                                currentScreen = "home"
+                            },
+                            onSubmitSuccess = {
+                                // Aksi tambahan setelah berhasil submit jika diperlukan
+                            }
+                        )
+                    }"surat_domisili" -> {
+                        SuratDomisiliScreen(
                             onBackClicked = {
                                 // Kembali ke beranda
                                 currentScreen = "home"
