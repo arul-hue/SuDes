@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -88,21 +90,33 @@ fun RegisterScreen(
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    // Tombol Lanjut dengan Google
+                    // Tombol Masuk dengan Google (Menggunakan ic_google)
                     OutlinedButton(
                         onClick = onGoogleRegisterClicked,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
+                            .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color.LightGray)
+                        )
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Text(text = "G  ", color = Color(0xFFEA4335), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            Text(text = "Lanjut dengan Google", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_google),
+                                contentDescription = "Logo Google",
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Masuk dengan Google",
+                                color = Color.DarkGray,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp
+                            )
                         }
                     }
 

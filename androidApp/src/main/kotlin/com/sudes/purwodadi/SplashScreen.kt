@@ -1,5 +1,7 @@
 package com.sudes.purwodadi
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +48,7 @@ fun SplashScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // KODE BARU (SETELAH DIGANTI DENGAN LOGO GAMBAR):
                 Surface(
                     modifier = Modifier.size(110.dp),
                     shape = RoundedCornerShape(26.dp),
@@ -53,11 +56,10 @@ fun SplashScreen(
                     shadowElevation = 8.dp
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Shield,
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_sudes), // Mengambil gambar dari folder drawable (R = res)
                             contentDescription = "Logo SuDes",
-                            tint = GreenDesaPrimary,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(140.dp) // Sesuaikan ukuran gambar di dalam kotak putih
                         )
                     }
                 }

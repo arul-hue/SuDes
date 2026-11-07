@@ -1,5 +1,7 @@
 package com.sudes.purwodadi
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,13 +50,21 @@ fun LoginScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // ==========================================
+                // LOGO SUDES
+                // ==========================================
                 Surface(
-                    modifier = Modifier.size(64.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White
+                    modifier = Modifier.size(90.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    color = Color.White, // Latar belakang putih
+                    shadowElevation = 6.dp // Efek bayangan agar tampak timbul
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(text = "🛡️", fontSize = 32.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_sudes),
+                            contentDescription = "Logo SuDes",
+                            modifier = Modifier.size(140.dp)
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -181,15 +191,34 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Tombol Masuk dengan Google (Menggunakan ic_google)
                     OutlinedButton(
                         onClick = onGoogleLoginClicked,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color.LightGray)
+                        )
                     ) {
-                        Text(text = "G  ", color = Color(0xFFEA4335), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Lanjut dengan Google", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_google),
+                                contentDescription = "Logo Google",
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Masuk dengan Google",
+                                color = Color.DarkGray,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
