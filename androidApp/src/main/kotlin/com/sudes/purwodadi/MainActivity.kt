@@ -76,6 +76,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onLogoutClicked = {
                                 currentScreen = "login" // Keluar akun kembali ke halaman login
+                            },
+                            onUbahEmailClicked = {
+                                currentScreen = "ubah_email" // <--- Ini yang membuat layarnya terbuka saat diklik
                             }
                         )
                     }
@@ -84,6 +87,12 @@ class MainActivity : ComponentActivity() {
                             initialNama = "Sahal Alfarizi",
                             onBackClicked = { currentScreen = "profile" },
                             onSaveSuccess = { currentScreen = "profile" } // Kembali ke profil setelah klik simpan
+                        )
+                    }
+                    "ubah_email" -> {
+                        UbahEmailScreen(
+                            onBackClicked = { currentScreen = "profile" },
+                            onSaveSuccess = { currentScreen = "profile" }
                         )
                     }
                     "surat_usaha" -> {
