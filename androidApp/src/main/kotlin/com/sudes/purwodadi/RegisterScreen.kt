@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -41,6 +42,10 @@ fun RegisterScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
+
+    BackHandler {
+        onBackToLoginClicked()
+    }
 
     Box(
         modifier = Modifier

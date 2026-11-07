@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,17 @@ fun ForgotPasswordScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var showSuccessDialog by remember { mutableStateOf(false) }
+
+    // Menambahkan BackHandler
+    BackHandler {
+        if (showSuccessDialog) {
+            // Jika pop-up sukses sedang muncul, tutup pop-upnya dulu saat tombol Back ditekan
+            showSuccessDialog = false
+        } else {
+            // Jika tidak ada pop-up, jalankan fungsi kembali ke halaman login
+            onBackToLoginClicked()
+        }
+    }
 
     Box(
         modifier = Modifier

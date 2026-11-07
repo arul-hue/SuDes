@@ -1,7 +1,7 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,6 +33,25 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+
+    // Konteks dan variabel untuk konfirmasi keluar aplikasi saat tombol Back ditekan di LoginScreen
+    val context = LocalContext.current
+    var backPressedTime by remember { mutableStateOf(0L) }
+
+    BackHandler {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - backPressedTime < 2000) {
+            // Tekan 2x dalam 2 detik untuk keluar aplikasi
+            (context as? android.app.Activity)?.finish()
+        } else {
+            backPressedTime = currentTime
+            android.widget.Toast.makeText(
+                context,
+                "Tekan sekali lagi untuk keluar aplikasi",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -239,7 +260,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // DIPERBAIKI: Menggunakan Arrangement.Center pada Row agar teks berada di tengah secara horizontal
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
