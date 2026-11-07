@@ -370,7 +370,7 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia
+// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
 @Composable
 fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
@@ -383,7 +383,12 @@ fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit,
             textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = GreenDesaPrimary,
+                focusedLabelColor = GreenDesaPrimary,
+                cursorColor = GreenDesaPrimary
+            )
         )
     }
 }

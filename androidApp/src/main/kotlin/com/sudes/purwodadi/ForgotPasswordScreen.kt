@@ -31,7 +31,7 @@ fun ForgotPasswordScreen(
             .background(GrayBackground),
         contentAlignment = Alignment.Center
     ) {
-        // KARTU UTAMA DENGAN HEADER HIJAU DI DALAMNYA (UI TETAP PERSIS)
+        // KARTU UTAMA DENGAN HEADER HIJAU DI DALAMNYA
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,7 +64,7 @@ fun ForgotPasswordScreen(
                     }
                 }
 
-                // Bagian Form Input di dalam kartu dengan font besar
+                // Bagian Form Input di dalam kartu
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
@@ -87,7 +87,13 @@ fun ForgotPasswordScreen(
                         textStyle = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        singleLine = true
+                        singleLine = true,
+                        // KODE TAMBAHAN: Agar garis fokus & kursor menjadi hijau
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = GreenDesaPrimary,
+                            focusedLabelColor = GreenDesaPrimary,
+                            cursorColor = GreenDesaPrimary
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -129,7 +135,7 @@ fun ForgotPasswordScreen(
             }
         }
 
-        // POPUP SUKSES KETIKA EMAIL DIKIRIM (FONT DIPERBESAR)
+        // POPUP SUKSES KETIKA EMAIL DIKIRIM
         if (showSuccessDialog) {
             AlertDialog(
                 onDismissRequest = { },

@@ -119,7 +119,12 @@ fun LoginScreen(
                         placeholder = { Text("Masukkan email Anda", color = TextPlaceholder) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = GreenDesaPrimary,
+                            focusedLabelColor = GreenDesaPrimary,
+                            cursorColor = GreenDesaPrimary
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -135,6 +140,11 @@ fun LoginScreen(
                         singleLine = true,
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = GreenDesaPrimary,
+                            focusedLabelColor = GreenDesaPrimary,
+                            cursorColor = GreenDesaPrimary
+                        ),
                         trailingIcon = {
                             IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                                 Icon(
@@ -199,7 +209,7 @@ fun LoginScreen(
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(Color.LightGray)
+                            brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
                         )
                     ) {
                         Row(
