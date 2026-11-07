@@ -76,7 +76,9 @@ class MainActivity : ComponentActivity() {
                                 } else if (serviceName == "Surat Keterangan Domisili") {
                                     currentScreen = "surat_domisili" // <- Menuju ke Surat Domisili
                                 } else if (serviceName == "Surat Keterangan Kehilangan") {
-                                    currentScreen = "surat_kehilangan" // <- Tambahkan ini
+                                    currentScreen = "surat_kehilangan" // <- Menuju ke Surat Kehilangan
+                                } else if (serviceName == "Surat Keterangan Kematian") {
+                                    currentScreen = "surat_kematian" // <- Menuju ke Surat Kematian
                                 }
                             },
                             onTabSelected = { tabIndex ->
@@ -108,6 +110,17 @@ class MainActivity : ComponentActivity() {
                     }
                     "surat_kehilangan" -> {
                         SuratKehilanganScreen(
+                            onBackClicked = {
+                                // Kembali ke beranda
+                                currentScreen = "home"
+                            },
+                            onSubmitSuccess = {
+                                // Aksi tambahan setelah berhasil submit jika diperlukan
+                            }
+                        )
+                    }
+                    "surat_kematian" -> {
+                        SuratKematianScreen(
                             onBackClicked = {
                                 // Kembali ke beranda
                                 currentScreen = "home"
