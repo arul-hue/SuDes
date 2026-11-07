@@ -1,5 +1,7 @@
 package com.sudes.purwodadi
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -65,318 +67,206 @@ fun SuratKematianScreen(
     var hubunganPelapor by remember { mutableStateOf("") }
 
     // State Dialog Konfirmasi & Sukses
-    var showConfirmDialog by remember { mutableStateOf(false) }
-    var isSubmittedSuccess by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) } // Untuk dialog "Yakin ingin kirim?"
+    var isSubmittedSuccess by remember { mutableStateOf(false) }       // Untuk dialog pop-up sukses
 
     val scrollState = rememberScrollState()
 
-    if (isSubmittedSuccess) {
-        // TAMPILAN SUKSES PENGAJUAN
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(GreenDesaPrimary),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+    // TAMPILAN FORM UTAMA
+    Scaffold(
+        topBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = GreenDesaPrimary,
+                shadowElevation = 4.dp
             ) {
-                Spacer(modifier = Modifier.height(30.dp))
-                Text(
-                    text = "Pengajuan Berhasil",
-                    style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 22.sp)
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "Dokumen Kematian telah masuk ke sistem desa",
-                    style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.9f), fontSize = 15.sp)
-                )
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color.White,
-                    shadowElevation = 8.dp
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Surface(
-                            modifier = Modifier.size(70.dp),
-                            shape = androidx.compose.foundation.shape.CircleShape,
-                            color = GreenDesaLight
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Success",
-                                    tint = GreenDesaPrimary,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text(
-                            text = "Surat Keterangan Kematian",
-                            style = AppTypography.HeadingLarge.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                            color = TextPrimary
+                    IconButton(onClick = onBackClicked) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = Color.White
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Pengajuan Surat Keterangan Kematian Anda sedang menunggu verifikasi dari perangkat Desa Purwodadi Simpang.",
-                            style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
-                            color = TextSecondary,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                        Button(
-                            onClick = { /* Aksi ke halaman status */ },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
-                        ) {
-                            Text(text = "Lihat Status Pengajuan", style = AppTypography.ButtonText.copy(fontSize = 16.sp))
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedButton(
-                            onClick = onBackClicked,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(text = "Kembali ke Beranda", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 16.sp))
-                        }
                     }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Surat Keterangan Kematian",
+                        style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
+                    )
                 }
             }
-        }
-    } else {
-        // TAMPILAN FORM UTAMA
-        Scaffold(
-            topBar = {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = GreenDesaPrimary,
-                    shadowElevation = 4.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .padding(horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = onBackClicked) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Kembali",
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Surat Keterangan Kematian",
-                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 20.sp)
-                        )
-                    }
-                }
-            },
-            containerColor = GrayBackground
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .imePadding()
-                    .verticalScroll(scrollState)
-                    .padding(16.dp)
+        },
+        containerColor = GrayBackground
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
+            // TOMBOL ISI OTOMATIS
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = GreenDesaLight,
+                border = androidx.compose.foundation.BorderStroke(1.dp, GreenDesaPrimary.copy(alpha = 0.3f))
             ) {
-                // TOMBOL ISI OTOMATIS
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = GreenDesaLight,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, GreenDesaPrimary.copy(alpha = 0.3f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "⚡  ", fontSize = 18.sp)
-                        Text(
-                            text = "Isi Otomatis dari Profil",
-                            style = AppTypography.LabelForm.copy(color = GreenDesaPrimary, fontSize = 15.sp)
-                        )
-                    }
+                    Text(text = "⚡  ", fontSize = 18.sp)
+                    Text(
+                        text = "Isi Otomatis dari Profil",
+                        style = AppTypography.LabelForm.copy(color = GreenDesaPrimary, fontSize = 15.sp)
+                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 1: DATA DIRI ALMARHUM / ALMARHUMAH[cite: 6]
-                KematianCardSection(title = "DATA DIRI ALMARHUM / ALMARHUMAH") {
-                    KematianFormTextField(label = "Nama Lengkap", value = namaAlmarhum, onValueChange = { namaAlmarhum = it }, placeholder = "Masukkan nama almarhum/almarhumah")
-                    KematianFormTextField(label = "NIK", value = nikAlmarhum, onValueChange = { nikAlmarhum = it }, placeholder = "Masukkan 16 digit NIK")
-                    KematianFormTextField(label = "Umur", value = umur, onValueChange = { umur = it }, placeholder = "Contoh: 65 Tahun")
-                    KematianFormTextField(label = "Tempat, Tanggal Lahir", value = tempatTanggalLahir, onValueChange = { tempatTanggalLahir = it }, placeholder = "Contoh: Bandar Lampung, 01 Januari 1961")
-                    KematianFormDropdownField(label = "Jenis Kelamin", selectedValue = jenisKelamin.ifEmpty { "Pilih jenis kelamin" })
-                    KematianFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
-                    KematianFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
-                    KematianFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan terakhir")
-                    KematianFormTextField(label = "Alamat Lengkap", value = alamatAlmarhum, onValueChange = { alamatAlmarhum = it }, placeholder = "Masukkan alamat almarhum")
-                }
+            // KARTU 1: DATA DIRI ALMARHUM / ALMARHUMAH[cite: 6]
+            KematianCardSection(title = "DATA DIRI ALMARHUM / ALMARHUMAH") {
+                KematianFormTextField(label = "Nama Lengkap", value = namaAlmarhum, onValueChange = { namaAlmarhum = it }, placeholder = "Masukkan nama almarhum/almarhumah")
+                KematianFormTextField(label = "NIK", value = nikAlmarhum, onValueChange = { nikAlmarhum = it }, placeholder = "Masukkan 16 digit NIK")
+                KematianFormTextField(label = "Umur", value = umur, onValueChange = { umur = it }, placeholder = "Contoh: 65 Tahun")
+                KematianFormTextField(label = "Tempat, Tanggal Lahir", value = tempatTanggalLahir, onValueChange = { tempatTanggalLahir = it }, placeholder = "Contoh: Bandar Lampung, 01 Januari 1961")
+                KematianFormDropdownField(label = "Jenis Kelamin", selectedValue = jenisKelamin.ifEmpty { "Pilih jenis kelamin" })
+                KematianFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
+                KematianFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
+                KematianFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan terakhir")
+                KematianFormTextField(label = "Alamat Lengkap", value = alamatAlmarhum, onValueChange = { alamatAlmarhum = it }, placeholder = "Masukkan alamat almarhum")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 2: DETAIL KEMATIAN (WAKTU & TEMPAT)[cite: 8]
-                KematianCardSection(title = "DETAIL KEMATIAN (WAKTU & TEMPAT)") {
-                    KematianFormTextField(label = "Pukul / Jam Wafat", value = pukulWafat, onValueChange = { pukulWafat = it }, placeholder = "Contoh: 08.00 WIB")
-                    KematianFormTextField(label = "Hari Wafat", value = hariWafat, onValueChange = { hariWafat = it }, placeholder = "Contoh: Kamis")
-                    KematianFormTextField(label = "Tanggal Wafat", value = tanggalWafat, onValueChange = { tanggalWafat = it }, placeholder = "Contoh: 05 November 2026")
-                    KematianFormTextField(label = "Tempat Wafat", value = tempatWafat, onValueChange = { tempatWafat = it }, placeholder = "Contoh: Rumah Kediaman / Rumah Sakit")
-                }
+            // KARTU 2: DETAIL KEMATIAN (WAKTU & TEMPAT)[cite: 8]
+            KematianCardSection(title = "DETAIL KEMATIAN (WAKTU & TEMPAT)") {
+                KematianFormTextField(label = "Pukul / Jam Wafat", value = pukulWafat, onValueChange = { pukulWafat = it }, placeholder = "Contoh: 08.00 WIB")
+                KematianFormTextField(label = "Hari Wafat", value = hariWafat, onValueChange = { hariWafat = it }, placeholder = "Contoh: Kamis")
+                KematianFormTextField(label = "Tanggal Wafat", value = tanggalWafat, onValueChange = { tanggalWafat = it }, placeholder = "Contoh: 05 November 2026")
+                KematianFormTextField(label = "Tempat Wafat", value = tempatWafat, onValueChange = { tempatWafat = it }, placeholder = "Contoh: Rumah Kediaman / Rumah Sakit")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 3: DETAIL PEMAKAMAN[cite: 8]
-                KematianCardSection(title = "DETAIL PEMAKAMAN") {
-                    KematianFormTextField(label = "Pukul Pemakaman", value = pukulPemakaman, onValueChange = { pukulPemakaman = it }, placeholder = "Contoh: 14.00 WIB")
-                    KematianFormTextField(label = "Hari Pemakaman", value = hariPemakaman, onValueChange = { hariPemakaman = it }, placeholder = "Contoh: Kamis")
-                    KematianFormTextField(label = "Tanggal Pemakaman", value = tanggalPemakaman, onValueChange = { tanggalPemakaman = it }, placeholder = "Contoh: 05 November 2026")
-                    KematianFormTextField(label = "Tempat Pemakaman (TPU)", value = tempatPemakaman, onValueChange = { tempatPemakaman = it }, placeholder = "Contoh: TPU Desa Purwodadi Simpang")
-                }
+            // KARTU 3: DETAIL PEMAKAMAN[cite: 8]
+            KematianCardSection(title = "DETAIL PEMAKAMAN") {
+                KematianFormTextField(label = "Pukul Pemakaman", value = pukulPemakaman, onValueChange = { pukulPemakaman = it }, placeholder = "Contoh: 14.00 WIB")
+                KematianFormTextField(label = "Hari Pemakaman", value = hariPemakaman, onValueChange = { hariPemakaman = it }, placeholder = "Contoh: Kamis")
+                KematianFormTextField(label = "Tanggal Pemakaman", value = tanggalPemakaman, onValueChange = { tanggalPemakaman = it }, placeholder = "Contoh: 05 November 2026")
+                KematianFormTextField(label = "Tempat Pemakaman (TPU)", value = tempatPemakaman, onValueChange = { tempatPemakaman = it }, placeholder = "Contoh: TPU Desa Purwodadi Simpang")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 4: DATA PELAPOR[cite: 7]
-                KematianCardSection(title = "DATA PELAPOR") {
-                    KematianFormTextField(label = "Nama Pelapor", value = namaPelapor, onValueChange = { namaPelapor = it }, placeholder = "Masukkan nama pelapor")
-                    KematianFormTextField(label = "NIK Pelapor", value = nikPelapor, onValueChange = { nikPelapor = it }, placeholder = "Masukkan 16 digit NIK pelapor")
-                    KematianFormTextField(label = "Alamat Pelapor", value = alamatPelapor, onValueChange = { alamatPelapor = it }, placeholder = "Masukkan alamat lengkap pelapor")
-                    KematianFormTextField(label = "Status / Hubungan dengan Almarhum", value = hubunganPelapor, onValueChange = { hubunganPelapor = it }, placeholder = "Contoh: Anak / Suami / Istri")
-                }
+            // KARTU 4: DATA PELAPOR[cite: 7]
+            KematianCardSection(title = "DATA PELAPOR") {
+                KematianFormTextField(label = "Nama Pelapor", value = namaPelapor, onValueChange = { namaPelapor = it }, placeholder = "Masukkan nama pelapor")
+                KematianFormTextField(label = "NIK Pelapor", value = nikPelapor, onValueChange = { nikPelapor = it }, placeholder = "Masukkan 16 digit NIK pelapor")
+                KematianFormTextField(label = "Alamat Pelapor", value = alamatPelapor, onValueChange = { alamatPelapor = it }, placeholder = "Masukkan alamat lengkap pelapor")
+                KematianFormTextField(label = "Status / Hubungan dengan Almarhum", value = hubunganPelapor, onValueChange = { hubunganPelapor = it }, placeholder = "Contoh: Anak / Suami / Istri")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // KARTU 5: SURAT PENGANTAR RT[cite: 7]
-                KematianCardSection(title = "SURAT PENGANTAR RT") {
-                    OutlinedButton(
-                        onClick = { /* Aksi Upload File */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = GrayBackground)
-                    ) {
-                        Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Upload", tint = TextSecondary)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Unggah Foto/Scan Surat Pengantar RT", color = TextSecondary, style = AppTypography.BodyRegular.copy(fontSize = 15.sp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // KARTU 6: INFORMASI SURAT[cite: 7]
-                KematianCardSection(title = "INFORMASI SURAT") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(text = "Nomor Surat (Diisi Admin)", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = "470/ ... /IX/SKM/VII.02.03/2026", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextPlaceholder)
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(text = "Tanggal", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = getKematianDateFormatted(),
-                                style = AppTypography.LabelForm.copy(fontSize = 14.sp),
-                                color = GreenDesaPrimary
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // TOMBOL KIRIM PENGAJUAN[cite: 7]
-                Button(
-                    onClick = { showConfirmDialog = true },
+            // KARTU 5: SURAT PENGANTAR RT[cite: 7]
+            KematianCardSection(title = "SURAT PENGANTAR RT") {
+                OutlinedButton(
+                    onClick = { /* Aksi Upload File */ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = GrayBackground)
                 ) {
-                    Text(text = "Kirim Pengajuan Surat", style = AppTypography.ButtonText.copy(fontSize = 16.sp))
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Upload", tint = TextSecondary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Unggah Foto/Scan Surat Pengantar RT", color = TextSecondary, style = AppTypography.BodyRegular.copy(fontSize = 15.sp))
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // KARTU 6: INFORMASI SURAT[cite: 7]
+            KematianCardSection(title = "INFORMASI SURAT") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(text = "Nomor Surat (Diisi Admin)", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = "470/ ... /IX/SKM/VII.02.03/2026", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextPlaceholder)
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(text = "Tanggal", style = AppTypography.Caption.copy(fontSize = 13.sp), color = TextSecondary)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = getKematianDateFormatted(),
+                            style = AppTypography.LabelForm.copy(fontSize = 14.sp),
+                            color = GreenDesaPrimary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // TOMBOL KIRIM PENGAJUAN[cite: 7]
+            Button(
+                onClick = { showConfirmDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+            ) {
+                Text(text = "Kirim Pengajuan Surat", style = AppTypography.ButtonText.copy(fontSize = 16.sp))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
-    // DIALOG KONFIRMASI KIRIM
+    // 1. POP-UP DIALOG KONFIRMASI ("Kirim Pengajuan Surat?")
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
             containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
             title = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Surface(
-                        modifier = Modifier.size(60.dp),
-                        shape = androidx.compose.foundation.shape.CircleShape,
-                        color = Color(0xFFFEF3C7)
-                    ) {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(modifier = Modifier.size(56.dp), shape = CircleShape, color = Color(0xFFFEF3C7)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(text = "!", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
+                            Text(text = "!", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Kirim Pengajuan Surat?",
-                        style = AppTypography.HeadingLarge.copy(fontSize = 20.sp),
-                        color = TextPrimary
-                    )
+                    Text(text = "Kirim Pengajuan Surat?", style = AppTypography.HeadingLarge.copy(fontSize = 18.sp), color = TextPrimary)
                 }
             },
             text = {
-                Text(
-                    text = "Pastikan data dan dokumen pengantar RT yang Anda masukkan sudah benar dan lengkap.",
-                    style = AppTypography.BodyRegular.copy(fontSize = 15.sp),
-                    color = TextSecondary,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
+                Text(text = "Pastikan data dan dokumen pengantar RT yang Anda masukkan sudah benar.", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextSecondary, textAlign = TextAlign.Center)
             },
             confirmButton = {
                 Button(
                     onClick = {
                         showConfirmDialog = false
-                        isSubmittedSuccess = true
-                        onSubmitSuccess()
+                        isSubmittedSuccess = true // Lanjut memunculkan pop-up sukses
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                 ) {
@@ -389,12 +279,47 @@ fun SuratKematianScreen(
             dismissButton = {
                 OutlinedButton(
                     onClick = { showConfirmDialog = false },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(text = "Periksa Kembali", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp))
+                }
+            }
+        )
+    }
+
+    // 2. POP-UP DIALOG SUKSES ("Pengajuan Berhasil!")
+    if (isSubmittedSuccess) {
+        AlertDialog(
+            onDismissRequest = { },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(modifier = Modifier.size(64.dp), shape = CircleShape, color = GreenDesaLight) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(imageVector = Icons.Default.Check, contentDescription = "Success", tint = GreenDesaPrimary, modifier = Modifier.size(36.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Pengajuan Berhasil!", style = AppTypography.HeadingLarge.copy(fontSize = 20.sp), color = TextPrimary)
+                }
+            },
+            text = {
+                Text(text = "Dokumen Anda telah masuk ke sistem desa dan menunggu verifikasi.", style = AppTypography.BodyRegular.copy(fontSize = 14.sp), color = TextSecondary, textAlign = TextAlign.Center)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isSubmittedSuccess = false
+                        onSubmitSuccess() // Kembali ke Beranda / halaman sebelumnya
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                ) {
+                    Text(text = "Kembali ke Beranda", style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold))
                 }
             }
         )

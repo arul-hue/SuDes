@@ -67,50 +67,53 @@ class MainActivity : ComponentActivity() {
                             userName = "Sahal",
                             userFullName = "Sahal Alfarizi",
                             onTabSelected = { tabIndex ->
-                                // Routing dari Bottom Navigation Bar di Profil
                                 if (tabIndex == 0) {
                                     currentScreen = "home"
                                 }
+                            },
+                            onEditClicked = {
+                                currentScreen = "edit_profile" // Menuju ke halaman edit data diri[cite: 12]
                             },
                             onLogoutClicked = {
                                 currentScreen = "login" // Keluar akun kembali ke halaman login
                             }
                         )
                     }
+                    "edit_profile" -> {
+                        EditProfileScreen(
+                            initialNama = "Sahal Alfarizi",
+                            onBackClicked = { currentScreen = "profile" },
+                            onSaveSuccess = { currentScreen = "profile" } // Kembali ke profil setelah klik simpan
+                        )
+                    }
                     "surat_usaha" -> {
                         SuratUsahaScreen(
                             onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
+                            onSubmitSuccess = { currentScreen = "home" }
                         )
                     }
                     "surat_domisili" -> {
                         SuratDomisiliScreen(
                             onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
-                        )
-                    }
-                    "surot_kehilangan" -> {
-                        SuratKehilanganScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
+                            onSubmitSuccess = { currentScreen = "home" }
                         )
                     }
                     "surat_kehilangan" -> {
                         SuratKehilanganScreen(
                             onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
+                            onSubmitSuccess = { currentScreen = "home" }
                         )
                     }
                     "surat_kematian" -> {
                         SuratKematianScreen(
                             onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
+                            onSubmitSuccess = { currentScreen = "home" }
                         )
                     }
                     "surat_sktm" -> {
                         SuratTidakMampuScreen(
                             onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = {}
+                            onSubmitSuccess = { currentScreen = "home" }
                         )
                     }
                 }

@@ -26,6 +26,7 @@ fun ProfileScreen(
     userFullName: String = "Sahal Alfarizi",
     userRole: String = "Warga Desa Purwodadi Simpang",
     onTabSelected: (Int) -> Unit = {},
+    onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
@@ -160,7 +161,7 @@ fun ProfileScreen(
                                 style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
                                 color = TextPrimary
                             )
-                            IconButton(onClick = { /* Aksi Edit Data Diri */ }, modifier = Modifier.size(24.dp)) {
+                            IconButton(onClick = onEditClicked, modifier = Modifier.size(24.dp)) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
                                     contentDescription = "Edit Data Diri",
