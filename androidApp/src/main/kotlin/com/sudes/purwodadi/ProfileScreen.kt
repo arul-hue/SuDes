@@ -1,0 +1,320 @@
+package com.sudes.purwodadi
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.sudes.purwodadi.ui.theme.*
+
+@Composable
+fun ProfileScreen(
+    userName: String = "Sahal",
+    userFullName: String = "Sahal Alfarizi",
+    userRole: String = "Warga Desa Purwodadi Simpang",
+    onTabSelected: (Int) -> Unit = {},
+    onLogoutClicked: () -> Unit = {}
+) {
+    var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 8.dp
+            ) {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Beranda") },
+                    label = { Text("Beranda", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    selected = selectedTab == 0,
+                    onClick = {
+                        selectedTab = 0
+                        onTabSelected(0)
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = GreenDesaPrimary,
+                        selectedTextColor = GreenDesaPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = GreenDesaLight
+                    )
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Description, contentDescription = "Status") },
+                    label = { Text("Status", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    selected = selectedTab == 1,
+                    onClick = {
+                        selectedTab = 1
+                        onTabSelected(1)
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = GreenDesaPrimary,
+                        selectedTextColor = GreenDesaPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = GreenDesaLight
+                    )
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
+                    label = { Text("Profil", style = AppTypography.Caption.copy(fontSize = 13.sp)) },
+                    selected = selectedTab == 2,
+                    onClick = {
+                        selectedTab = 2
+                        onTabSelected(2)
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = GreenDesaPrimary,
+                        selectedTextColor = GreenDesaPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary,
+                        indicatorColor = GreenDesaLight
+                    )
+                )
+            }
+        },
+        containerColor = GrayBackground
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+        ) {
+            // HEADER PROFIL (Avatar & Info Warga)[cite: 11]
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GreenDesaPrimary)
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier.size(52.dp),
+                        shape = CircleShape,
+                        color = Color.White
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Avatar",
+                                tint = GreenDesaPrimary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            text = userName,
+                            style = AppTypography.HeadingLarge.copy(color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = userRole,
+                            style = AppTypography.BodyRegular.copy(color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
+                        )
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // KARTU 1: DATA DIRI[cite: 11]
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    shadowElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "DATA DIRI",
+                                style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                                color = TextPrimary
+                            )
+                            IconButton(onClick = { /* Aksi Edit Data Diri */ }, modifier = Modifier.size(24.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Data Diri",
+                                    tint = TextPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = BorderColor, thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        ProfileDataRow(label = "Nama", value = userFullName)
+                        ProfileDataRow(label = "NIK", value = "-")
+                        ProfileDataRow(label = "Tempat, Tgl Lahir", value = "-")
+                        ProfileDataRow(label = "Pekerjaan", value = "-")
+                        ProfileDataRow(label = "Agama", value = "-")
+                        ProfileDataRow(label = "Status", value = "-")
+                        ProfileDataRow(label = "Alamat", value = "-")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // KARTU 2: PENGATURAN AKUN[cite: 11]
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    shadowElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "PENGATURAN AKUN",
+                            style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = BorderColor, thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        ProfileMenuItem(title = "Ubah Email Google", onClick = { /* Aksi Ubah Email */ })
+                        ProfileMenuItem(title = "Ganti Nomor Handphone", onClick = { /* Aksi Ganti No HP */ })
+                        ProfileMenuItem(title = "Ganti Password", onClick = { /* Aksi Ganti Password */ })
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // KARTU 3: BANTUAN & PANDUAN[cite: 11]
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    shadowElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "BANTUAN & PANDUAN",
+                            style = AppTypography.HeadingLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = BorderColor, thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        ProfileMenuItem(title = "Video Tutorial Penggunaan SuDes", onClick = { /* Aksi Tutorial */ })
+                        ProfileMenuItem(title = "Bantuan & Pertanyaan Umum", onClick = { /* Aksi FAQ */ })
+                        ProfileMenuItem(title = "Tentang Aplikasi SuDes", onClick = { /* Aksi Tentang */ })
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // TOMBOL KELUAR DARI AKUN[cite: 11]
+                OutlinedButton(
+                    onClick = onLogoutClicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color(0xFFFEF2F2) // Warna latar merah muda tipis
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.4f))
+                ) {
+                    Text(
+                        text = "Keluar dari Akun",
+                        style = AppTypography.ButtonText.copy(fontSize = 15.sp, color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+// Komponen Baris Data Diri (Label : Value)
+@Composable
+fun ProfileDataRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextSecondary),
+            modifier = Modifier.width(120.dp)
+        )
+        Row(modifier = Modifier.weight(1f)) {
+            Text(
+                text = ": ",
+                style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextSecondary)
+            )
+            Text(
+                text = value,
+                style = AppTypography.BodyRegular.copy(fontSize = 14.sp, color = TextPrimary, fontWeight = FontWeight.Medium)
+            )
+        }
+    }
+}
+
+// Komponen Item Menu dengan Chevron Kanan
+@Composable
+fun ProfileMenuItem(title: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = AppTypography.BodyRegular.copy(fontSize = 15.sp, color = TextPrimary)
+            )
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Detail",
+                tint = TextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
