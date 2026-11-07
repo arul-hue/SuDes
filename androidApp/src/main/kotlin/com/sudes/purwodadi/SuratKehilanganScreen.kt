@@ -330,7 +330,15 @@ fun KehilanganFormTextField(label: String, value: String, onValueChange: (String
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = GreenDesaPrimary,
+                // Container tetap putih solid
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+
+                // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
+                unfocusedBorderColor = GrayBorder,
+                focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
+
                 focusedLabelColor = GreenDesaPrimary,
                 cursorColor = GreenDesaPrimary
             )
@@ -350,6 +358,7 @@ fun KehilanganFormDropdownField(label: String, selectedValue: String) {
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(10.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
         ) {
             Row(

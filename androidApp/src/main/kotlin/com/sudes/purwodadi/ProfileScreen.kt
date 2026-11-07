@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -31,6 +32,7 @@ fun ProfileScreen(
 ) {
     var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
     val scrollState = rememberScrollState()
+    var showLogoutDialog by remember { mutableStateOf(false) } // State pop-up keluar akun
 
     Scaffold(
         bottomBar = {
@@ -241,14 +243,15 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // TOMBOL KELUAR DARI AKUN[cite: 11]
+                // TOMBOL KELUAR DARI AKUN
                 OutlinedButton(
-                    onClick = onLogoutClicked,
+                    onClick = { showLogoutDialog = true }, // Memunculkan pop-up konfirmasi
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color(0xFFFEF2F2) // Warna latar merah muda tipis
+                        containerColor = Color(0xFFFEF2F2)
                     ),
                     border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.4f))
                 ) {
@@ -261,6 +264,74 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
+
+    // POP-UP DIALOG KONFIRMASI KELUAR AKUN
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(modifier = Modifier.size(56.dp), shape = CircleShape, color = Color(0xFFFEF2F2)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Logout,
+                                contentDescription = "Logout",
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = "Keluar dari Akun?", style = AppTypography.HeadingLarge.copy(fontSize = 18.sp), color = TextPrimary)
+                }
+            },
+            text = {
+                Text(
+                    text = "Apakah Anda yakin ingin keluar dari aplikasi Desa Purwodadi Simpang?",
+                    style = AppTypography.BodyRegular.copy(fontSize = 14.sp),
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            showLogoutDialog = false
+                            onLogoutClicked() // Menjalankan fungsi keluar akun yang sebenarnya
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)) // Warna merah untuk aksi keluar
+                    ) {
+                        Text(text = "Ya, Keluar", style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White))
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { showLogoutDialog = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(text = "Batal", color = TextPrimary, style = AppTypography.ButtonText.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
+                    }
+                }
+            },
+            dismissButton = {}
+        )
     }
 }
 

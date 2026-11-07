@@ -121,7 +121,15 @@ fun LoginScreen(
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GreenDesaPrimary,
+                            // Container tetap putih solid
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            disabledContainerColor = Color.White,
+
+                            // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
+                            unfocusedBorderColor = GrayBorder,
+                            focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
+
                             focusedLabelColor = GreenDesaPrimary,
                             cursorColor = GreenDesaPrimary
                         )
@@ -141,7 +149,15 @@ fun LoginScreen(
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GreenDesaPrimary,
+                            // Container tetap putih solid
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            disabledContainerColor = Color.White,
+
+                            // === GARIS BORDER ABU-ABU SAAT TIDAK FOKUS ===
+                            unfocusedBorderColor = GrayBorder,
+                            focusedBorderColor = GreenDesaPrimary, // Garis hijau saat diketik/fokus
+
                             focusedLabelColor = GreenDesaPrimary,
                             cursorColor = GreenDesaPrimary
                         ),

@@ -13,7 +13,7 @@ val GreenDesaLight = Color(0xFFDCFCE7)         // Hijau Muda (Background Icon / 
 val GreenDesaHover = Color(0xFF14532D)         // Hijau Gelap Saat State Pressed
 
 val GrayBackground = Color(0xFFF8FAFC)         // Background Layar
-val GrayBorder = Color(0xFFE5E7EB)             // Garis tepi input form
+val GrayBorder = Color(0xFFABABAB)             // Garis tepi input form
 val TextPrimary = Color(0xFF1E293B)            // Warna Teks Utama / Judul
 val TextSecondary = Color(0xFF64748B)          // Warna Teks Deskripsi / Subtitle
 val TextPlaceholder = Color(0xFF94A3B8)        // Warna Placeholder Input
