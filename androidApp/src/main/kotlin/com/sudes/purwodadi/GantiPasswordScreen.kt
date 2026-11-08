@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,6 +37,17 @@ fun GantiPasswordScreen(
     var isSavedSuccess by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
+
+    BackHandler {
+        if (isSavedSuccess) {
+            // Jika pop-up sukses sedang tampil, tutup dan kembali ke profil
+            isSavedSuccess = false
+            onSaveSuccess()
+        } else {
+            // Jika tidak ada pop-up, kembali ke halaman profil
+            onBackClicked()
+        }
+    }
 
     Scaffold(
         topBar = {

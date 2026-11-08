@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -50,6 +51,16 @@ fun UbahEmailScreen(
     }
 
     val scrollState = rememberScrollState()
+
+    BackHandler {
+        if (showOtpDialog) {
+            // Jika pop-up OTP sedang terbuka, tutup pop-upnya dulu saat tombol Back ditekan
+            showOtpDialog = false
+        } else {
+            // Jika tidak ada pop-up, kembali ke halaman profil
+            onBackClicked()
+        }
+    }
 
     Scaffold(
         topBar = {

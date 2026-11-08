@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +40,18 @@ fun EditProfileScreen(
     var isSavedSuccess by remember { mutableStateOf(false) }       // Pop-up Sukses Berhasil Disimpan
 
     val scrollState = rememberScrollState()
+
+    // BackHandler untuk mencegat tombol Back fisik/gestur HP
+    BackHandler {
+        if (isSavedSuccess) {
+            isSavedSuccess = false
+            onSaveSuccess()
+        } else if (showConfirmDialog) {
+            showConfirmDialog = false
+        } else {
+            onBackClicked()
+        }
+    }
 
     // TAMPILAN FORM UTAMA EDIT DATA DIRI
     Scaffold(

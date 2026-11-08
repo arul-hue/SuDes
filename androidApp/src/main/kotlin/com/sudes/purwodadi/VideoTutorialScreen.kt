@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -34,6 +35,10 @@ fun VideoTutorialScreen(
         VideoTutorialItem("Mengecek Status & Ambil Surat", "Panduan mengambil surat di balai desa", "04:15 mnt"),
         VideoTutorialItem("Berkas Ditolak & Ajukan Ulang", "Cara memperbaiki berkas yang keliru", "03:10 mnt")
     )
+
+    BackHandler {
+        onBackClicked()
+    }
 
     Scaffold(
         topBar = {

@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +23,11 @@ import com.sudes.purwodadi.ui.theme.*
 fun TentangAplikasiScreen(
     onBackClicked: () -> Unit = {}
 ) {
+
+    BackHandler {
+        onBackClicked()
+    }
+
     Scaffold(
         topBar = {
             Surface(
