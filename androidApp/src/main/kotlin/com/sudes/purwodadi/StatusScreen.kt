@@ -32,7 +32,8 @@ enum class StatusPengajuan {
 @Composable
 fun StatusScreen(
     onTabSelected: (Int) -> Unit = {},
-    onDetailClicked: (String) -> Unit = {}
+    onDetailClicked: (String) -> Unit = {},
+    onResubmitClicked: (String) -> Unit = {} // Callback baru untuk ajukan ulang dari StatusScreen
 ) {
     var selectedTab by remember { mutableStateOf(1) } // Tab Status aktif di indeks 1
     var searchQuery by remember { mutableStateOf("") }
@@ -48,7 +49,7 @@ fun StatusScreen(
             namaPemohon = "Sahal Aw",
             tanggal = "03 Nov 2026, 09.15",
             status = StatusPengajuan.PROSES,
-            pesanStatus = "Sedang diverifikasi oleh Perangkat Desa"
+            pesanStatus = "Berkas dicek perangkat desa"
         ),
         PengajuanItem(
             jenisSurat = "Surat Keterangan Usaha",
@@ -62,7 +63,7 @@ fun StatusScreen(
             namaPemohon = "Syahrul Rek",
             tanggal = "29 Okt 2026, 11.00",
             status = StatusPengajuan.DITOLAK,
-            pesanStatus = "Berkas kurang lengkap, silakan ajukan ulang"
+            pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
         )
     )
 
@@ -222,7 +223,11 @@ fun StatusScreen(
 
                 // DAFTAR KARTU PENGAJUAN
                 filteredList.forEach { item ->
-                    PengajuanCard(item = item, onDetailClicked = { onDetailClicked(item.jenisSurat) })
+                    PengajuanCard(
+                        item = item,
+                        onDetailClicked = { onDetailClicked(item.jenisSurat) },
+                        onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -253,7 +258,11 @@ fun FilterChipItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun PengajuanCard(item: PengajuanItem, onDetailClicked: () -> Unit) {
+fun PengajuanCard(
+    item: PengajuanItem,
+    onDetailClicked: () -> Unit,
+    onResubmitClicked: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -295,14 +304,14 @@ fun PengajuanCard(item: PengajuanItem, onDetailClicked: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             val containerColor = when(item.status) {
-                StatusPengajuan.PROSES -> Color(0xFFFEF3C7)
+                StatusPengajuan.PROSES -> OrangeProcessContainer
                 StatusPengajuan.DITERIMA -> GreenDesaLight
-                StatusPengajuan.DITOLAK -> Color(0xFFFEE2E2)
+                StatusPengajuan.DITOLAK -> RedRejectedContainer
             }
             val textColor = when(item.status) {
-                StatusPengajuan.PROSES -> Color(0xFFD97706)
+                StatusPengajuan.PROSES -> OrangeProcessText
                 StatusPengajuan.DITERIMA -> GreenDesaPrimary
-                StatusPengajuan.DITOLAK -> Color(0xFFDC2626)
+                StatusPengajuan.DITOLAK -> RedRejectedText
             }
 
             Surface(
@@ -310,7 +319,15 @@ fun PengajuanCard(item: PengajuanItem, onDetailClicked: () -> Unit) {
                 shape = RoundedCornerShape(8.dp),
                 color = containerColor
             ) {
-                Box(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    if (item.status == StatusPengajuan.DITOLAK) {
+                        Text(
+                            text = "Alasan Penolakan Admin:",
+                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
                     Text(
                         text = item.pesanStatus,
                         style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
@@ -320,6 +337,24 @@ fun PengajuanCard(item: PengajuanItem, onDetailClicked: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+
+            // Jika status ditolak, tampilkan Tombol Ajukan Ulang & Lihat Detail
+            if (item.status == StatusPengajuan.DITOLAK) {
+                Button(
+                    onClick = onResubmitClicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                ) {
+                    Text(
+                        text = "Ajukan Ulang Surat Ini",
+                        style = AppTypography.ButtonText
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -346,9 +381,9 @@ fun PengajuanCard(item: PengajuanItem, onDetailClicked: () -> Unit) {
 @Composable
 fun StatusBadge(status: StatusPengajuan) {
     val (bgColor, textColor, text) = when(status) {
-        StatusPengajuan.PROSES -> Triple(Color(0xFFFEF3C7), Color(0xFFD97706), "• Diproses")
+        StatusPengajuan.PROSES -> Triple(OrangeProcessContainer, OrangeProcessText, "• Diproses")
         StatusPengajuan.DITERIMA -> Triple(GreenDesaLight, GreenDesaPrimary, "✓ Diterima")
-        StatusPengajuan.DITOLAK -> Triple(Color(0xFFFEE2E2), Color(0xFFDC2626), "✕ Ditolak")
+        StatusPengajuan.DITOLAK -> Triple(RedRejectedContainer, RedRejectedText, "✕ Ditolak")
     }
 
     Surface(

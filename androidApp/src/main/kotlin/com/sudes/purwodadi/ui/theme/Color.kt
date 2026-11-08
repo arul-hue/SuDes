@@ -19,6 +19,16 @@ val TextSecondary = Color(0xFF64748B)          // Warna Teks Deskripsi / Subtitl
 val TextPlaceholder = Color(0xFF94A3B8)        // Warna Placeholder Input
 val BorderColor = Color(0xFFE2E8F0)            // Warna Outlined Border / Divider
 
+// Token Warna Proses (Oranye)
+val OrangeProcessContainer = Color(0xFFFEF3C7)
+val OrangeProcessText      = Color(0xFFD97706)
+
+// Token Warna Ditolak (Merah)
+val RedRejectedContainer   = Color(0xFFFEE2E2)
+val RedRejectedText        = Color(0xFFDC2626)
+val RedRejectedBorder      = Color(0xFFEF4444)
+val RedRejectedDarkText    = Color(0xFF991B1B)
+
 // ==============================================================================
 // 2. TIPOGRAFI RAMAH LANSIA (ACCESSIBILITY-FIRST - DIPERBESAR)
 // ==============================================================================
