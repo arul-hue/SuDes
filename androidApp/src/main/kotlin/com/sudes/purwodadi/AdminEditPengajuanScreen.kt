@@ -145,8 +145,26 @@ fun AdminEditPengajuanScreen(
                     AdminEditTextField(label = "Jenis Kelamin", value = jenisKelamin, onValueChange = { jenisKelamin = it })
                     AdminEditTextField(label = "Agama", value = agama, onValueChange = { agama = it })
                     AdminEditTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it })
-                    AdminEditTextField(label = "Alamat Lengkap", value = alamatLengkap, onValueChange = { alamatLengkap = it })
-                    AdminEditTextField(label = "Alamat Tempat Tinggal Saat Ini", value = alamatTinggal, onValueChange = { alamatTinggal = it })
+
+                    // 👉 Alamat Lengkap diatur Multi-line (3-4 baris)
+                    AdminEditTextField(
+                        label = "Alamat Lengkap",
+                        value = alamatLengkap,
+                        onValueChange = { alamatLengkap = it },
+                        singleLine = false,
+                        minLines = 3,
+                        maxLines = 4
+                    )
+
+                    // 👉 Alamat Tempat Tinggal diatur Multi-line (2-3 baris)
+                    AdminEditTextField(
+                        label = "Alamat Tempat Tinggal Saat Ini",
+                        value = alamatTinggal,
+                        onValueChange = { alamatTinggal = it },
+                        singleLine = false,
+                        minLines = 2,
+                        maxLines = 3
+                    )
 
                     AdminEditTextField(label = "Nomor Surat Resmi (Diterbitkan Admin)", value = nomorSurat, onValueChange = { nomorSurat = it })
 
@@ -305,10 +323,10 @@ fun AdminEditPengajuanScreen(
                                 )
                             },
                             textStyle = AppTypography.BodyRegular.copy(fontWeight = FontWeight.SemiBold, color = RedRejectedText),
-                            modifier = Modifier.fillMaxWidth(), // <-- Diperbaiki, modifier kembali normal
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            minLines = 2,       // Tinggi awal minimal 2 baris
-                            maxLines = 4,       // Batas maksimal 4 baris agar tetap rapi
+                            minLines = 2,
+                            maxLines = 4,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = RedRejectedContainer.copy(alpha = 0.5f),
                                 unfocusedContainerColor = RedRejectedContainer.copy(alpha = 0.3f),
@@ -454,13 +472,22 @@ fun AdminEditPengajuanScreen(
     }
 }
 
+// Komponen AdminEditTextField (Disempurnakan: Mendukung multi-line & sharedTextStyle yang Presisi)
 @Composable
 fun AdminEditTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = ""
+    placeholder: String = "",
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1
 ) {
+    val adminTextStyle = AppTypography.BodyRegular.copy(
+        fontWeight = FontWeight.SemiBold,
+        color = TextPrimary
+    )
+
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
         Text(
             text = label,
@@ -471,11 +498,18 @@ fun AdminEditTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, style = AppTypography.BodyRegular, color = TextPlaceholder) },
-            textStyle = AppTypography.BodyRegular.copy(fontWeight = FontWeight.SemiBold, color = TextPrimary),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    style = adminTextStyle.copy(color = TextPlaceholder)
+                )
+            },
+            textStyle = adminTextStyle,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
