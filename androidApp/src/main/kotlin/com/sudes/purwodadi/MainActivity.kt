@@ -16,14 +16,13 @@ import kotlinx.coroutines.launch
 import com.sudes.purwodadi.ui.theme.SudesTheme
 
 class MainActivity : ComponentActivity() {
+    private val authViewModel by lazy { AuthViewModel() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SudesTheme {
                 var currentScreen by remember { mutableStateOf("splash") }
-
-                // Inisialisasi AuthViewModel utama di MainActivity
-                val authViewModel = remember { AuthViewModel() }
                 val isLoading by authViewModel.isLoading.collectAsState()
 
                 // RIWAYAT TAB GLOBAL (Menyimpan urutan tab: "home", "status", "profile")
@@ -56,7 +55,6 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            // Diperbaiki: Typo patahan baris newline ( \n ) dibersihkan menjadi minus (-)
                             tabHistory.removeAt(tabHistory.size - 1)
                             currentScreen = tabHistory.last()
                         } else {
@@ -82,61 +80,28 @@ class MainActivity : ComponentActivity() {
                             authViewModel = authViewModel,
                             isLoading = isLoading,
                             onGoogleLoginClicked = {
-                                if (authViewModel.isLoading.value) return@LoginScreen
-                                authViewModel.setLoading(true)
-
-                                val credentialManager = CredentialManager.create(this@MainActivity)
-                                val googleIdOption = GetGoogleIdOption.Builder()
-                                    .setFilterByAuthorizedAccounts(false)
-                                    .setServerClientId("623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com")
-                                    .build()
-
-                                val request = GetCredentialRequest.Builder()
-                                    .addCredentialOption(googleIdOption)
-                                    .build()
-
-                                lifecycleScope.launch {
-                                    try {
-                                        val result = credentialManager.getCredential(this@MainActivity, request)
-                                        val credential = result.credential
-
-                                        if (credential is CustomCredential &&
-                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-
-                                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-
-                                            authViewModel.signInWithGoogleCredential(
-                                                idToken = googleIdTokenCredential.idToken,
-                                                namaLengkap = googleIdTokenCredential.displayName ?: "Warga Purwodadi",
-                                                email = googleIdTokenCredential.id,
-                                                onSuccess = {
-                                                    authViewModel.setLoading(false)
-                                                    currentScreen = "home"
-                                                    tabHistory.clear()
-                                                    tabHistory.add("home")
-                                                }
-                                            )
-                                        } else {
-                                            authViewModel.setLoading(false)
-                                        }
-                                    } catch (e: Throwable) {
-                                        val errorName = e.javaClass.name.lowercase()
-                                        val isCanceled = errorName.contains("cancel") ||
-                                                errorName.contains("abort") ||
-                                                e is kotlinx.coroutines.CancellationException
-
-                                        if (!isCanceled) {
-                                            Toast.makeText(this@MainActivity, "Google Sign-In gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                                        }
-                                        authViewModel.setLoading(false)
+                                handleGoogleSignIn(
+                                    onSuccess = {
+                                        currentScreen = "home"
+                                        tabHistory.clear()
+                                        tabHistory.add("home")
                                     }
-                                }
+                                )
                             },
-                            onLoginClicked = { email, password ->
-                                // Tambahkan fungsi login manual Anda di sini jika sudah ada
+                            onLoginSuccess = {
+                                currentScreen = "home"
+                                tabHistory.clear()
+                                tabHistory.add("home")
+                                Toast.makeText(context, "Berhasil masuk!", Toast.LENGTH_SHORT).show()
                             },
-                            onRegisterClicked = { currentScreen = "register" },
-                            onForgotPasswordClicked = { /* Aksi lupa password */ }
+                            onRegisterClicked = {
+                                authViewModel.clearError() // Bersihkan error saat pindah ke register
+                                currentScreen = "register"
+                            },
+                            onForgotPasswordClicked = {
+                                authViewModel.clearError() // Bersihkan error saat pindah ke lupa password
+                                currentScreen = "forgot_password"
+                            }
                         )
                     }
                     "register" -> {
@@ -144,76 +109,30 @@ class MainActivity : ComponentActivity() {
                             authViewModel = authViewModel,
                             isLoading = isLoading,
                             onGoogleRegisterClicked = {
-                                // CEK INSTAN: Jika sudah dalam keadaan loading, abaikan ketukan tambahan
-                                if (authViewModel.isLoading.value) return@RegisterScreen
-
-                                // Nyalakan loading seketika saat tombol Google diklik
-                                authViewModel.setLoading(true)
-
-                                val credentialManager = CredentialManager.create(this@MainActivity)
-
-                                val googleIdOption = GetGoogleIdOption.Builder()
-                                    .setFilterByAuthorizedAccounts(false)
-                                    .setServerClientId("623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com")
-                                    .build()
-
-                                val request = GetCredentialRequest.Builder()
-                                    .addCredentialOption(googleIdOption)
-                                    .build()
-
-                                lifecycleScope.launch {
-                                    try {
-                                        val result = credentialManager.getCredential(this@MainActivity, request)
-                                        val credential = result.credential
-
-                                        if (credential is CustomCredential &&
-                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-
-                                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                                            val googleIdToken = googleIdTokenCredential.idToken
-                                            val googleName = googleIdTokenCredential.displayName ?: "Warga Purwodadi"
-                                            val googleEmail = googleIdTokenCredential.id
-
-                                            // Proses login ke Firebase (Loading TETAP AKTIF selama proses ini)
-                                            authViewModel.signInWithGoogleCredential(
-                                                idToken = googleIdToken,
-                                                namaLengkap = googleName,
-                                                email = googleEmail,
-                                                onSuccess = {
-                                                    // Matikan loading HANYA KETIKA semuanya benar-benar sukses & pindah halaman
-                                                    authViewModel.setLoading(false)
-                                                    currentScreen = "home"
-                                                    tabHistory.clear()
-                                                    tabHistory.add("home")
-                                                    Toast.makeText(this@MainActivity, "Berhasil masuk dengan Google!", Toast.LENGTH_SHORT).show()
-                                                }
-                                            )
-                                        } else {
-                                            // Jika format kredensial tidak sesuai
-                                            authViewModel.setLoading(false)
-                                        }
-                                    } catch (e: Throwable) {
-                                        val errorName = e.javaClass.name.lowercase()
-                                        val isCanceled = errorName.contains("cancel") ||
-                                                errorName.contains("abort") ||
-                                                e is kotlinx.coroutines.CancellationException
-
-                                        if (!isCanceled) {
-                                            Toast.makeText(this@MainActivity, "Google Sign-In gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                                        }
-                                        // Matikan loading jika terjadi pembatalan atau error
-                                        authViewModel.setLoading(false)
+                                handleGoogleSignIn(
+                                    onSuccess = {
+                                        currentScreen = "home"
+                                        tabHistory.clear()
+                                        tabHistory.add("home")
                                     }
-                                    // Blok `finally` dihapus dari sini agar loading tidak mati terlalu cepat!
-                                }
+                                )
                             },
-                            onBackToLoginClicked = { currentScreen = "login" }
+                            onBackToLoginClicked = {
+                                authViewModel.clearError() // Bersihkan error saat kembali ke login
+                                currentScreen = "login"
+                            }
                         )
                     }
                     "forgot_password" -> {
                         ForgotPasswordScreen(
-                            onSubmitEmailClicked = { _ -> currentScreen = "login" },
-                            onBackToLoginClicked = { currentScreen = "login" }
+                            onSubmitEmailClicked = {
+                                authViewModel.clearError()
+                                currentScreen = "login"
+                            },
+                            onBackToLoginClicked = {
+                                authViewModel.clearError()
+                                currentScreen = "login"
+                            }
                         )
                     }
                     "admin_dashboard" -> {
@@ -341,6 +260,63 @@ class MainActivity : ComponentActivity() {
                     "surat_kematian" -> SuratKematianScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                     "surat_sktm" -> SuratTidakMampuScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                 }
+            }
+        }
+    }
+
+    /**
+     * Fungsi helper terpusat untuk menangani Google Sign-In via Credential Manager
+     */
+    private fun handleGoogleSignIn(onSuccess: () -> Unit) {
+        if (authViewModel.isLoading.value) return
+        authViewModel.setLoading(true)
+
+        val credentialManager = CredentialManager.create(this)
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId("623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com")
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        lifecycleScope.launch {
+            try {
+                val result = credentialManager.getCredential(this@MainActivity, request)
+                val credential = result.credential
+
+                if (credential is CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    val googleIdToken = googleIdTokenCredential.idToken
+                    val googleName = googleIdTokenCredential.displayName ?: "Warga Purwodadi"
+                    val googleEmail = googleIdTokenCredential.id
+
+                    authViewModel.signInWithGoogleCredential(
+                        idToken = googleIdToken,
+                        namaLengkap = googleName,
+                        email = googleEmail,
+                        onSuccess = {
+                            authViewModel.setLoading(false)
+                            Toast.makeText(this@MainActivity, "Berhasil masuk dengan Google!", Toast.LENGTH_SHORT).show()
+                            onSuccess()
+                        }
+                    )
+                } else {
+                    authViewModel.setLoading(false)
+                }
+            } catch (e: Throwable) {
+                val errorName = e.javaClass.name.lowercase()
+                val isCanceled = errorName.contains("cancel") ||
+                        errorName.contains("abort") ||
+                        e is kotlinx.coroutines.CancellationException
+
+                if (!isCanceled) {
+                    Toast.makeText(this@MainActivity, "Google Sign-In gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+                authViewModel.setLoading(false)
             }
         }
     }

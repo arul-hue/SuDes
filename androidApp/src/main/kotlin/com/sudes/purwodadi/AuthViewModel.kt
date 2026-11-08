@@ -1,9 +1,11 @@
 package com.sudes.purwodadi
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +22,13 @@ class AuthViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    // Di dalam class AuthViewModel.kt Anda, pastikan ada fungsi ini:
+    /**
+     * Membersihkan pesan error saat berpindah halaman
+     */
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
     fun setLoading(loading: Boolean) {
         _isLoading.value = loading
     }
@@ -93,7 +101,6 @@ class AuthViewModel : ViewModel() {
                     }
                 } else {
                     _isLoading.value = false
-
                     val rawMessage = task.exception?.message ?: ""
 
                     _errorMessage.value = when {
@@ -106,8 +113,57 @@ class AuthViewModel : ViewModel() {
                         else ->
                             "Pendaftaran gagal: $rawMessage"
                     }
+                }
+            }
+    }
 
+    /**
+     * Fungsi login manual melalui Form (Email & Password) yang stabil & aman
+     */
+    fun loginUser(
+        email: String,
+        password: String,
+        onSuccess: () -> Unit
+    ) {
+        if (email.isBlank() || password.isBlank()) {
+            _errorMessage.value = "Email dan kata sandi wajib diisi!"
+            return
+        }
 
+        // 1. Validasi format email lokal
+        if (!Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+            _errorMessage.value = "Format penulisan email salah atau tidak valid."
+            return
+        }
+
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        // 2. Proses masuk standar Firebase yang stabil untuk akun terdaftar
+        auth.signInWithEmailAndPassword(email.trim(), password)
+            .addOnCompleteListener { task ->
+                _isLoading.value = false
+                if (task.isSuccessful) {
+                    onSuccess()
+                } else {
+                    val rawMessage = task.exception?.message ?: ""
+
+                    // Pesan umum yang aman dan tidak membuat akun valid gagal masuk
+                    _errorMessage.value = when {
+                        rawMessage.contains("password", ignoreCase = true) ||
+                                rawMessage.contains("credential", ignoreCase = true) ||
+                                rawMessage.contains("wrong-password", ignoreCase = true) ||
+                                rawMessage.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true) ||
+                                rawMessage.contains("user-not-found", ignoreCase = true) ||
+                                rawMessage.contains("no user record", ignoreCase = true) ->
+                            "Email atau kata sandi yang Anda masukkan salah."
+
+                        rawMessage.contains("network", ignoreCase = true) ->
+                            "Koneksi internet bermasalah. Periksa kembali sambungan Anda."
+
+                        else ->
+                            "Gagal masuk: $rawMessage"
+                    }
                 }
             }
     }
@@ -121,7 +177,6 @@ class AuthViewModel : ViewModel() {
         email: String,
         onSuccess: () -> Unit
     ) {
-        // 1. Nyalakan loading seketika
         _isLoading.value = true
         _errorMessage.value = null
 
@@ -132,7 +187,6 @@ class AuthViewModel : ViewModel() {
                     val firebaseUser = auth.currentUser
                     val userId = firebaseUser?.uid ?: ""
 
-                    // Simpan atau perbarui data profil warga ke Cloud Firestore
                     val userData = hashMapOf(
                         "uid" to userId,
                         "namaLengkap" to namaLengkap,
@@ -142,14 +196,12 @@ class AuthViewModel : ViewModel() {
                     )
 
                     firestore.collection("users").document(userId)
-                        .set(userData, com.google.firebase.firestore.SetOptions.merge())
+                        .set(userData, SetOptions.merge())
                         .addOnCompleteListener { _ ->
-                            // 2. Matikan loading setelah data Firestore selesai disimpan
                             _isLoading.value = false
                             onSuccess()
                         }
                 } else {
-                    // 3. Matikan loading dan tangkap pesan error jika Firebase gagal
                     _isLoading.value = false
                     val rawMessage = task.exception?.message ?: "Terjadi kesalahan sistem"
 

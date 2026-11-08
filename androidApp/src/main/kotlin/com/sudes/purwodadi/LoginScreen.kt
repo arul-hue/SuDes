@@ -1,16 +1,16 @@
 package com.sudes.purwodadi
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.verticalScroll
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,8 +34,8 @@ import com.sudes.purwodadi.ui.theme.*
 fun LoginScreen(
     authViewModel: AuthViewModel = remember { AuthViewModel() },
     isLoading: Boolean = false,
-    onLoginClicked: (String, String) -> Unit = { _, _ -> },
     onGoogleLoginClicked: () -> Unit = {},
+    onLoginSuccess: () -> Unit = {},
     onForgotPasswordClicked: () -> Unit = {},
     onRegisterClicked: () -> Unit = {}
 ) {
@@ -93,7 +94,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // HEADER ATAS HIJAU DESA
@@ -165,7 +166,7 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // TOMBOL MASUK DENGAN GOOGLE (Diletakkan di atas atau sesuai selera)
+                        // TOMBOL MASUK DENGAN GOOGLE
                         OutlinedButton(
                             onClick = onGoogleLoginClicked,
                             enabled = !isAnyLoading,
@@ -174,7 +175,7 @@ fun LoginScreen(
                                 .height(50.dp),
                             shape = RoundedCornerShape(12.dp),
                             border = ButtonDefaults.outlinedButtonBorder.copy(
-                                brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
+                                brush = SolidColor(BorderColor)
                             )
                         ) {
                             Row(
@@ -318,7 +319,15 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
-                            onClick = { onLoginClicked(email, password) },
+                            onClick = {
+                                authViewModel.loginUser(
+                                    email = email,
+                                    password = password,
+                                    onSuccess = {
+                                        onLoginSuccess()
+                                    }
+                                )
+                            },
                             enabled = !isAnyLoading,
                             modifier = Modifier
                                 .fillMaxWidth()
