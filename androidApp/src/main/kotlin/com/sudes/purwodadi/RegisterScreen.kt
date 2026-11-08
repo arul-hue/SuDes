@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.activity.compose.BackHandler
@@ -242,12 +243,36 @@ fun RegisterScreen(
                         )
 
                         if (errorMessage != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = errorMessage ?: "",
-                                color = MaterialTheme.colorScheme.error,
-                                style = AppTypography.Caption
-                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            // Kotak peringatan merah lembut agar sangat jelas terlihat
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFFFEF2F2), // Merah muda sangat lembut
+                                border = BorderStroke(1.dp, Color(0xFFFCA5A5))
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Peringatan",
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = errorMessage ?: "",
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = AppTypography.BodyRegular.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    )
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
