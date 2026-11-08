@@ -1,6 +1,7 @@
 package com.sudes.purwodadi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,7 @@ fun StatusScreen(
     var selectedFilter by remember { mutableStateOf("Semua") }
 
     val scrollState = rememberScrollState()
+    val filterScrollState = rememberScrollState() // State khusus untuk scroll horizontal filter
 
     // Data tiruan pengajuan surat
     val listPengajuan = listOf(
@@ -187,9 +189,11 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW
+                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(filterScrollState), // Mengaktifkan geser menyamping
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChipItem(
