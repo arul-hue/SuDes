@@ -226,7 +226,7 @@ fun RegisterScreen(
                             label = "Kata Sandi",
                             value = password,
                             onValueChange = { password = it },
-                            placeholder = "Minimal 8 karakter",
+                            placeholder = "Minimal 6 karakter",
                             isPassword = true,
                             passwordVisible = passwordVisible,
                             onVisibilityChanged = { passwordVisible = !passwordVisible }

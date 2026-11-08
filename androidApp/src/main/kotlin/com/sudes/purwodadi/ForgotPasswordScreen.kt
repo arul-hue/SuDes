@@ -20,19 +20,22 @@ import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun ForgotPasswordScreen(
-    onSubmitEmailClicked: (String) -> Unit = {},
+    authViewModel: AuthViewModel,
+    isLoading: Boolean,
     onBackToLoginClicked: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var showSuccessDialog by remember { mutableStateOf(false) }
 
+    // Mengambil state error secara real-time dari ViewModel
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+
     // Menambahkan BackHandler
     BackHandler {
         if (showSuccessDialog) {
-            // Jika pop-up sukses sedang muncul, tutup pop-upnya dulu saat tombol Back ditekan
             showSuccessDialog = false
         } else {
-            // Jika tidak ada pop-up, jalankan fungsi kembali ke halaman login
+            authViewModel.clearError()
             onBackToLoginClicked()
         }
     }
@@ -43,7 +46,6 @@ fun ForgotPasswordScreen(
             .background(GrayBackground),
         contentAlignment = Alignment.Center
     ) {
-        // KARTU UTAMA DENGAN HEADER HIJAU DI DALAMNYA
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -55,7 +57,7 @@ fun ForgotPasswordScreen(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Header Hijau di bagian atas kartu
+                // Header Hijau
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -76,10 +78,28 @@ fun ForgotPasswordScreen(
                     }
                 }
 
-                // Bagian Form Input di dalam kartu
+                // Bagian Form Input
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
+                    // Tampilkan kotak error jika ada pesan error dari ViewModel
+                    if (!errorMessage.isNullOrEmpty()) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFEE2E2)
+                        ) {
+                            Text(
+                                text = errorMessage ?: "",
+                                color = Color(0xFF991B1B),
+                                style = AppTypography.BodyRegular,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+
                     Text(
                         text = "Email",
                         style = AppTypography.LabelForm,
@@ -88,7 +108,10 @@ fun ForgotPasswordScreen(
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = {
+                            email = it
+                            if (errorMessage != null) authViewModel.clearError()
+                        },
                         placeholder = {
                             Text(
                                 "Masukkan email Anda",
@@ -115,25 +138,33 @@ fun ForgotPasswordScreen(
 
                     Button(
                         onClick = {
-                            // Langsung memunculkan pop-up sukses saat tombol ditekan
-                            showSuccessDialog = true
-                            onSubmitEmailClicked(email)
+                            authViewModel.sendPasswordResetEmail(email) {
+                                // Dipanggil hanya jika Firebase sukses mengirim email
+                                showSuccessDialog = true
+                            }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                     ) {
-                        Text(
-                            text = "Kirim Link Reset Password",
-                            style = AppTypography.ButtonText
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Kirim Link Reset Password",
+                                style = AppTypography.ButtonText
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Tombol Kembali ke Halaman Masuk dengan Box + Clickable (Padding & Ripple fleksibel)
                     Box(
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
@@ -141,7 +172,10 @@ fun ForgotPasswordScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .clickable { onBackToLoginClicked() }
+                                .clickable {
+                                    authViewModel.clearError()
+                                    onBackToLoginClicked()
+                                }
                                 .padding(horizontal = 8.dp, vertical = 6.dp)
                         ) {
                             Text(
@@ -155,7 +189,7 @@ fun ForgotPasswordScreen(
             }
         }
 
-        // POPUP SUKSES KETIKA EMAIL DIKIRIM (MENGGUNAKAN BOX OVERLAY)
+        // POPUP SUKSES
         if (showSuccessDialog) {
             Box(
                 modifier = Modifier
@@ -226,6 +260,7 @@ fun ForgotPasswordScreen(
                         Button(
                             onClick = {
                                 showSuccessDialog = false
+                                authViewModel.clearError()
                                 onBackToLoginClicked()
                             },
                             modifier = Modifier

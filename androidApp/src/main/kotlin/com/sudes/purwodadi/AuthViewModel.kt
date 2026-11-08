@@ -54,8 +54,8 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        if (password.length < 8) {
-            _errorMessage.value = "Kata Sandi minimal harus 8 karakter!"
+        if (password.length < 6) {
+            _errorMessage.value = "Kata Sandi minimal harus 6 karakter!"
             return
         }
 
@@ -109,7 +109,7 @@ class AuthViewModel : ViewModel() {
                         rawMessage.contains("badly formatted", ignoreCase = true) ->
                             "Format penulisan email salah atau tidak valid."
                         rawMessage.contains("weak password", ignoreCase = true) ->
-                            "Kata sandi terlalu lemah. Gunakan minimal 8 karakter."
+                            "Kata sandi terlalu lemah. Gunakan minimal 6 karakter."
                         else ->
                             "Pendaftaran gagal: $rawMessage"
                     }
@@ -210,6 +210,49 @@ class AuthViewModel : ViewModel() {
                             "Koneksi internet bermasalah. Periksa kembali sambungan Anda."
                         else ->
                             "Autentikasi Google gagal: $rawMessage"
+                    }
+                }
+            }
+    }
+
+    /**
+     * Fungsi untuk mengirim tautan reset password ke email warga
+     */
+    fun sendPasswordResetEmail(
+        email: String,
+        onSuccess: () -> Unit
+    ) {
+        if (email.isBlank()) {
+            _errorMessage.value = "Email wajib diisi!"
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+            _errorMessage.value = "Format penulisan email salah atau tidak valid."
+            return
+        }
+
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        auth.sendPasswordResetEmail(email.trim())
+            .addOnCompleteListener { task ->
+                _isLoading.value = false
+                if (task.isSuccessful) {
+                    onSuccess()
+                } else {
+                    val rawMessage = task.exception?.message ?: ""
+                    val errorCode = (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode ?: ""
+
+                    _errorMessage.value = when {
+                        errorCode == "ERROR_USER_NOT_FOUND" ||
+                                rawMessage.contains("user-not-found", ignoreCase = true) ||
+                                rawMessage.contains("no user record", ignoreCase = true) ->
+                            "Email ini belum terdaftar di sistem."
+                        rawMessage.contains("network", ignoreCase = true) ->
+                            "Koneksi internet bermasalah. Periksa kembali sambungan Anda."
+                        else ->
+                            "Gagal mengirim reset password: $rawMessage"
                     }
                 }
             }

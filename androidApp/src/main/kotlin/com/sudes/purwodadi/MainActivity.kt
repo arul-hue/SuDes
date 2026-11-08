@@ -125,10 +125,8 @@ class MainActivity : ComponentActivity() {
                     }
                     "forgot_password" -> {
                         ForgotPasswordScreen(
-                            onSubmitEmailClicked = {
-                                authViewModel.clearError()
-                                currentScreen = "login"
-                            },
+                            authViewModel = authViewModel,
+                            isLoading = isLoading,
                             onBackToLoginClicked = {
                                 authViewModel.clearError()
                                 currentScreen = "login"
