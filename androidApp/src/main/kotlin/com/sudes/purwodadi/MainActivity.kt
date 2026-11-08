@@ -79,23 +79,64 @@ class MainActivity : ComponentActivity() {
                     }
                     "login" -> {
                         LoginScreen(
-                            onLoginClicked = { email, _ ->
-                                if (email.equals("admin@purwodadi.desa.id", ignoreCase = true) ||
-                                    email.contains("admin", ignoreCase = true)) {
-                                    currentScreen = "admin_dashboard"
-                                } else {
-                                    currentScreen = "home"
-                                }
-                                tabHistory.clear()
-                                tabHistory.add(currentScreen)
-                            },
+                            authViewModel = authViewModel,
+                            isLoading = isLoading,
                             onGoogleLoginClicked = {
-                                currentScreen = "home"
-                                tabHistory.clear()
-                                tabHistory.add("home")
+                                if (authViewModel.isLoading.value) return@LoginScreen
+                                authViewModel.setLoading(true)
+
+                                val credentialManager = CredentialManager.create(this@MainActivity)
+                                val googleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setServerClientId("623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com")
+                                    .build()
+
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleIdOption)
+                                    .build()
+
+                                lifecycleScope.launch {
+                                    try {
+                                        val result = credentialManager.getCredential(this@MainActivity, request)
+                                        val credential = result.credential
+
+                                        if (credential is CustomCredential &&
+                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+
+                                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+
+                                            authViewModel.signInWithGoogleCredential(
+                                                idToken = googleIdTokenCredential.idToken,
+                                                namaLengkap = googleIdTokenCredential.displayName ?: "Warga Purwodadi",
+                                                email = googleIdTokenCredential.id,
+                                                onSuccess = {
+                                                    authViewModel.setLoading(false)
+                                                    currentScreen = "home"
+                                                    tabHistory.clear()
+                                                    tabHistory.add("home")
+                                                }
+                                            )
+                                        } else {
+                                            authViewModel.setLoading(false)
+                                        }
+                                    } catch (e: Throwable) {
+                                        val errorName = e.javaClass.name.lowercase()
+                                        val isCanceled = errorName.contains("cancel") ||
+                                                errorName.contains("abort") ||
+                                                e is kotlinx.coroutines.CancellationException
+
+                                        if (!isCanceled) {
+                                            Toast.makeText(this@MainActivity, "Google Sign-In gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                        }
+                                        authViewModel.setLoading(false)
+                                    }
+                                }
                             },
-                            onForgotPasswordClicked = { currentScreen = "forgot_password" },
-                            onRegisterClicked = { currentScreen = "register" }
+                            onLoginClicked = { email, password ->
+                                // Tambahkan fungsi login manual Anda di sini jika sudah ada
+                            },
+                            onRegisterClicked = { currentScreen = "register" },
+                            onForgotPasswordClicked = { /* Aksi lupa password */ }
                         )
                     }
                     "register" -> {
