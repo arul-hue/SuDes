@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    id("com.google.gms.google-services")
 }
 
 kotlin {
@@ -11,6 +12,13 @@ kotlin {
     }
 }
 dependencies {
+    // --- Tambahan Firebase untuk SUDES Purwodadi ---
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    // ----------------------------------------------
+
     implementation(project(":shared"))
 
     implementation(platform("androidx.compose:compose-bom:2024.04.01"))

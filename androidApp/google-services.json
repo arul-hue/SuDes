@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "623723710056",
+    "project_id": "sudes-acd12",
+    "storage_bucket": "sudes-acd12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623723710056:android:bbd6494580957e479b5ddd",
+        "android_client_info": {
+          "package_name": "com.sudes.purwodadi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBd81dKL-DkcDD8r-g7-2Xn_T55XtElr28"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
