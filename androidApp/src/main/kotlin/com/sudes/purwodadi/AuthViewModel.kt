@@ -79,6 +79,12 @@ class AuthViewModel : ViewModel() {
                                 "email" to email,
                                 "nomorHp" to nomorHp,
                                 "role" to "warga",
+                                "nik" to "-",
+                                "tempatTanggalLahir" to "-",
+                                "pekerjaan" to "-",
+                                "agama" to "-",
+                                "statusPerkawinan" to "-",
+                                "alamatLengkap" to "-",
                                 "createdAt" to com.google.firebase.Timestamp.now()
                             )
 
@@ -152,7 +158,7 @@ class AuthViewModel : ViewModel() {
                                 android.util.Log.d("DEBUG_LOGIN", "Apakah dokumen ada? ${document.exists()}")
                                 android.util.Log.d("DEBUG_LOGIN", "Role tertulis di Firestore: ${document.getString("role")}")
 
-                                val role = document.getString("role") ?: "user"
+                                val role = document.getString("role") ?: "warga"
                                 onSuccess(role) // Kirim role ke MainActivity
                             }
                             .addOnFailureListener { e ->
@@ -211,6 +217,12 @@ class AuthViewModel : ViewModel() {
                         "namaLengkap" to namaLengkap,
                         "email" to email,
                         "role" to "warga",
+                        "nik" to "-",
+                        "tempatTanggalLahir" to "-",
+                        "pekerjaan" to "-",
+                        "agama" to "-",
+                        "statusPerkawinan" to "-",
+                        "alamatLengkap" to "-",
                         "createdAt" to com.google.firebase.Timestamp.now()
                     )
 
@@ -235,6 +247,52 @@ class AuthViewModel : ViewModel() {
     }
 
     /**
+     * Fungsi untuk menyimpan pembaruan data diri dari EditProfileScreen ke Firestore
+     */
+    fun updateProfileData(
+        namaLengkap: String,
+        nik: String,
+        tempatTanggalLahir: String,
+        pekerjaan: String,
+        agama: String,
+        statusPerkawinan: String,
+        alamatLengkap: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            onError("Sesi pengguna tidak ditemukan.")
+            return
+        }
+
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        val updatedData = mapOf(
+            "namaLengkap" to namaLengkap,
+            "nik" to nik,
+            "tempatTanggalLahir" to tempatTanggalLahir,
+            "pekerjaan" to pekerjaan,
+            "agama" to agama,
+            "statusPerkawinan" to statusPerkawinan,
+            "alamatLengkap" to alamatLengkap
+        )
+
+        firestore.collection("users").document(userId)
+            .update(updatedData)
+            .addOnSuccessListener {
+                _isLoading.value = false
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage
+                onError(e.localizedMessage ?: "Gagal memperbarui profil")
+            }
+    }
+
+    /**
      * Fungsi untuk mengirim tautan reset password ke email warga
      */
     fun sendPasswordResetEmail(
@@ -246,7 +304,7 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
             _errorMessage.value = "Format penulisan email salah atau tidak valid."
             return
         }

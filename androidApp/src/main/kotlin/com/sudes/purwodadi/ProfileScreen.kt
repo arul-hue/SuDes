@@ -21,9 +21,16 @@ import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun ProfileScreen(
-    userName: String = "Sahal",
-    userFullName: String = "Sahal Alfarizi",
+    namaLengkap: String = "Warga", // Murni menggunakan namaLengkap
     userRole: String = "Warga Desa Purwodadi Simpang",
+    // Parameter data diri dinamis
+    nik: String = "-",
+    tempatTanggalLahir: String = "-",
+    pekerjaan: String = "-",
+    agama: String = "-",
+    statusPerkawinan: String = "-",
+    alamatLengkap: String = "-",
+
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
@@ -130,7 +137,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = userName,
+                            text = namaLengkap, // Menampilkan nama asli dari database
                             style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -180,13 +187,13 @@ fun ProfileScreen(
                         HorizontalDivider(color = BorderColor, thickness = 1.dp)
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        ProfileDataRow(label = "Nama", value = userFullName)
-                        ProfileDataRow(label = "NIK", value = "-")
-                        ProfileDataRow(label = "Tempat, Tgl Lahir", value = "-")
-                        ProfileDataRow(label = "Pekerjaan", value = "-")
-                        ProfileDataRow(label = "Agama", value = "-")
-                        ProfileDataRow(label = "Status", value = "-")
-                        ProfileDataRow(label = "Alamat", value = "-")
+                        ProfileDataRow(label = "Nama", value = namaLengkap)
+                        ProfileDataRow(label = "NIK", value = nik)
+                        ProfileDataRow(label = "Tempat, Tgl Lahir", value = tempatTanggalLahir)
+                        ProfileDataRow(label = "Pekerjaan", value = pekerjaan)
+                        ProfileDataRow(label = "Agama", value = agama)
+                        ProfileDataRow(label = "Status", value = statusPerkawinan)
+                        ProfileDataRow(label = "Alamat", value = alamatLengkap)
                     }
                 }
 

@@ -1,6 +1,7 @@
 package com.sudes.purwodadi
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -14,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
@@ -22,23 +22,31 @@ import com.sudes.purwodadi.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
-    initialNama: String = "Sahal Alfarizi",
+    authViewModel: AuthViewModel,
+    initialNama: String = "",
+    initialNik: String = "",
+    initialTempatTgl: String = "",
+    initialPekerjaan: String = "",
+    initialAgama: String = "",
+    initialStatus: String = "",
+    initialAlamat: String = "",
     onBackClicked: () -> Unit = {},
     onSaveSuccess: () -> Unit = {}
 ) {
-    // State Form Edit Data Diri
+    // State Form Edit Data Diri diisi dengan data awal dari database
     var namaLengkap by remember { mutableStateOf(initialNama) }
-    var nik by remember { mutableStateOf("") }
-    var tempatTanggalLahir by remember { mutableStateOf("") }
-    var pekerjaan by remember { mutableStateOf("") }
-    var agama by remember { mutableStateOf("") }
-    var statusPerkawinan by remember { mutableStateOf("") }
-    var alamatLengkap by remember { mutableStateOf("") }
+    var nik by remember { mutableStateOf(initialNik) }
+    var tempatTanggalLahir by remember { mutableStateOf(initialTempatTgl) }
+    var pekerjaan by remember { mutableStateOf(initialPekerjaan) }
+    var agama by remember { mutableStateOf(initialAgama) }
+    var statusPerkawinan by remember { mutableStateOf(initialStatus) }
+    var alamatLengkap by remember { mutableStateOf(initialAlamat) }
 
     // State untuk Mengatur Munculnya Pop-up
-    var showConfirmDialog by remember { mutableStateOf(false) } // Pop-up Yakin / Konfirmasi
-    var isSavedSuccess by remember { mutableStateOf(false) }       // Pop-up Sukses Berhasil Disimpan
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var isSavedSuccess by remember { mutableStateOf(false) }
 
+    val isLoading by authViewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
 
     // BackHandler untuk mencegat tombol Back fisik/gestur HP
@@ -53,7 +61,6 @@ fun EditProfileScreen(
         }
     }
 
-    // TAMPILAN FORM UTAMA EDIT DATA DIRI
     Scaffold(
         topBar = {
             Surface(
@@ -117,16 +124,24 @@ fun EditProfileScreen(
                 onValueChange = { pekerjaan = it },
                 placeholder = "Masukkan jenis pekerjaan"
             )
+
+            // DROPDOWN AGAMA INTERAKTIF
             EditProfileDropdownField(
                 label = "Agama",
-                selectedValue = agama.ifEmpty { "Pilih agama" }
-            )
-            EditProfileDropdownField(
-                label = "Status Perkawinan",
-                selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" }
+                selectedValue = agama,
+                options = listOf("Islam", "Kristen Protestan", "Kristen Katolik", "Hindu", "Buddha", "Konghucu"),
+                onOptionSelected = { agama = it }
             )
 
-            // 👇 ALAMAT LENGKAP DIATUR MENJADI MULTI-LINE (MIN 3 BARIS, MAX 4 BARIS)
+            // DROPDOWN STATUS PERKAWINAN INTERAKTIF
+            EditProfileDropdownField(
+                label = "Status Perkawinan",
+                selectedValue = statusPerkawinan,
+                options = listOf("Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"),
+                onOptionSelected = { statusPerkawinan = it }
+            )
+
+            // ALAMAT LENGKAP MULTI-LINE
             EditProfileTextField(
                 label = "Alamat Lengkap",
                 value = alamatLengkap,
@@ -139,26 +154,31 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TOMBOL SIMPAN PERUBAHAN (Memicu Pop-up Konfirmasi Terlebih Dahulu)
+            // TOMBOL SIMPAN PERUBAHAN
             Button(
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary),
+                enabled = !isLoading
             ) {
-                Text(
-                    text = "Simpan Perubahan",
-                    style = AppTypography.ButtonText
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        text = "Simpan Perubahan",
+                        style = AppTypography.ButtonText
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
-    // 1. POP-UP DIALOG KONFIRMASI ("Apakah Anda yakin data sudah benar?")
+    // 1. POP-UP DIALOG KONFIRMASI
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -172,7 +192,7 @@ fun EditProfileScreen(
                     Surface(
                         modifier = Modifier.size(56.dp),
                         shape = CircleShape,
-                        color = Color(0xFFFEF3C7) // Kuning lembut peringatan
+                        color = Color(0xFFFEF3C7)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
@@ -205,7 +225,20 @@ fun EditProfileScreen(
                     Button(
                         onClick = {
                             showConfirmDialog = false
-                            isSavedSuccess = true // Lanjut memunculkan pop-up sukses
+                            // Panggil fungsi update ke Firestore melalui AuthViewModel
+                            authViewModel.updateProfileData(
+                                namaLengkap = namaLengkap,
+                                nik = nik,
+                                tempatTanggalLahir = tempatTanggalLahir,
+                                pekerjaan = pekerjaan,
+                                agama = agama,
+                                statusPerkawinan = statusPerkawinan,
+                                alamatLengkap = alamatLengkap,
+                                onSuccess = {
+                                    isSavedSuccess = true
+                                },
+                                onError = { _ -> }
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -233,7 +266,7 @@ fun EditProfileScreen(
         )
     }
 
-    // 2. POP-UP DIALOG SUKSES BERHASIL DISIMPAN
+    // 2. POP-UP DIALOG SUKSES
     if (isSavedSuccess) {
         AlertDialog(
             onDismissRequest = { },
@@ -298,14 +331,14 @@ fun EditProfileScreen(
     }
 }
 
-// Komponen Input TextField Khusus Edit Profil (Mendukung Multi-line, minLines, & maxLines)
+// Komponen Input TextField Khusus Edit Profil
 @Composable
 fun EditProfileTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    singleLine: Boolean = true, // Default tetap single-line
+    singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = 1
 ) {
@@ -335,28 +368,60 @@ fun EditProfileTextField(
     }
 }
 
-// Komponen Dropdown Simulasi Khusus Edit Profil
+// Komponen Dropdown Interaktif Khusus Edit Profil
 @Composable
-fun EditProfileDropdownField(label: String, selectedValue: String) {
+fun EditProfileDropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
-        OutlinedButton(
-            onClick = { /* Aksi Buka Pilihan Dropdown */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(10.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
             ) {
-                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular)
-                Text(text = "▼", color = TextSecondary, style = AppTypography.Caption)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (selectedValue.isBlank()) "Pilih $label" else selectedValue,
+                        color = if (selectedValue.isBlank()) TextPlaceholder else TextPrimary,
+                        style = AppTypography.BodyRegular
+                    )
+                    Text(text = if (expanded) "▲" else "▼", color = TextSecondary, style = AppTypography.Caption)
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(Color.White)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option, style = AppTypography.BodyRegular, color = TextPrimary) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

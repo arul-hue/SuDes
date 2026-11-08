@@ -14,19 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun HomeScreen(
-    userName: String = "Sahal",
+    namaLengkap: String = "Warga", // Murni menggunakan namaLengkap
     onServiceSelected: (String) -> Unit = {},
     onTabSelected: (Int) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
-
 
     Scaffold(
         bottomBar = {
@@ -131,7 +129,7 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = userName,
+                            text = namaLengkap, // Menampilkan nama lengkap asli
                             style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                     }

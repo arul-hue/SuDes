@@ -12,11 +12,15 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.CustomCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import com.sudes.purwodadi.ui.theme.SudesTheme
 
 class MainActivity : ComponentActivity() {
     private val authViewModel by lazy { AuthViewModel() }
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,27 +29,58 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("splash") }
                 val isLoading by authViewModel.isLoading.collectAsState()
 
-                // RIWAYAT TAB GLOBAL (Menyimpan urutan tab: "home", "status", "profile")
+                // State Dinamis untuk Profil Pengguna (Murni menggunakan namaLengkap)
+                var namaLengkapUser by remember { mutableStateOf("Warga") }
+                var emailUser by remember { mutableStateOf("") }
+                var nikUser by remember { mutableStateOf("") }
+                var tempatTglLahirUser by remember { mutableStateOf("") }
+                var pekerjaanUser by remember { mutableStateOf("") }
+                var agamaUser by remember { mutableStateOf("") }
+                var statusUser by remember { mutableStateOf("") }
+                var alamatUser by remember { mutableStateOf("") }
+                var roleUser by remember { mutableStateOf("warga") }
+
+                // Fungsi untuk mengambil data terbaru dari Firestore
+                val fetchUserData = {
+                    val userId = auth.currentUser?.uid
+                    if (userId != null) {
+                        firestore.collection("users").document(userId).get()
+                            .addOnSuccessListener { document ->
+                                if (document.exists()) {
+                                    namaLengkapUser = document.getString("namaLengkap") ?: (auth.currentUser?.displayName ?: "Warga")
+                                    emailUser = document.getString("email") ?: (auth.currentUser?.email ?: "")
+                                    nikUser = document.getString("nik") ?: ""
+                                    tempatTglLahirUser = document.getString("tempatTanggalLahir") ?: ""
+                                    pekerjaanUser = document.getString("pekerjaan") ?: ""
+                                    agamaUser = document.getString("agama") ?: ""
+                                    statusUser = document.getString("statusPerkawinan") ?: ""
+                                    alamatUser = document.getString("alamatLengkap") ?: ""
+                                    roleUser = document.getString("role") ?: "warga"
+                                }
+                            }
+                    }
+                }
+
+                // RIWAYAT TAB GLOBAL
                 val tabHistory = remember { mutableStateListOf("home") }
                 var backPressedTime by remember { mutableStateOf(0L) }
 
-                // State untuk menyimpan data surat yang sedang dipilih ke halaman detail
+                // State untuk surat
                 var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Domisili") }
                 var selectedStatusSurat by remember { mutableStateOf(StatusPengajuan.PROSES) }
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
-                var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt03_sahal.jpg") }
+                var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt03.jpg") }
 
                 var selectedFields by remember {
                     mutableStateOf(
                         listOf(
-                            DetailFieldItem("Nama Lengkap", "Sahal Aw"),
-                            DetailFieldItem("NIK", "3501230101900001"),
-                            DetailFieldItem("Tempat, Tanggal Lahir", "Bandar Lampung, 01 Januari 1990"),
+                            DetailFieldItem("Nama Lengkap", namaLengkapUser),
+                            DetailFieldItem("NIK", nikUser),
+                            DetailFieldItem("Tempat, Tanggal Lahir", tempatTglLahirUser),
                             DetailFieldItem("Jenis Kelamin", "Laki-laki"),
-                            DetailFieldItem("Agama", "Islam"),
-                            DetailFieldItem("Pekerjaan", "Wiraswasta"),
-                            DetailFieldItem("Alamat Lengkap", "Jl. Melati No. 12, RT 03/RW 05, Desa Purwodadi Simpang"),
-                            DetailFieldItem("Alamat Tempat Tinggal Saat Ini", "Dusun II RT 03, Purwodadi Simpang, Kec. Tanjung Bintang")
+                            DetailFieldItem("Agama", agamaUser),
+                            DetailFieldItem("Pekerjaan", pekerjaanUser),
+                            DetailFieldItem("Alamat Lengkap", alamatUser)
                         )
                     )
                 }
@@ -55,7 +90,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1) // Ada tanda minus (-)
+                            tabHistory.removeAt(tabHistory.size - 1)
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -72,7 +107,14 @@ class MainActivity : ComponentActivity() {
                 when (currentScreen) {
                     "splash" -> {
                         SplashScreen(
-                            onTimeout = { currentScreen = "login" }
+                            onTimeout = {
+                                if (auth.currentUser != null) {
+                                    fetchUserData()
+                                    currentScreen = "home"
+                                } else {
+                                    currentScreen = "login"
+                                }
+                            }
                         )
                     }
                     "login" -> {
@@ -82,6 +124,7 @@ class MainActivity : ComponentActivity() {
                             onGoogleLoginClicked = {
                                 handleGoogleSignIn(
                                     onSuccess = {
+                                        fetchUserData()
                                         currentScreen = "home"
                                         tabHistory.clear()
                                         tabHistory.add("home")
@@ -89,8 +132,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             onLoginSuccess = { role ->
-                                // Tangkap role, bersihkan spasi, dan ubah ke huruf kecil
                                 val cleanedRole = role.trim().lowercase()
+                                fetchUserData()
                                 if (cleanedRole == "admin") {
                                     currentScreen = "admin_dashboard"
                                     Toast.makeText(context, "Berhasil masuk sebagai Admin!", Toast.LENGTH_SHORT).show()
@@ -118,6 +161,7 @@ class MainActivity : ComponentActivity() {
                             onGoogleRegisterClicked = {
                                 handleGoogleSignIn(
                                     onSuccess = {
+                                        fetchUserData()
                                         currentScreen = "home"
                                         tabHistory.clear()
                                         tabHistory.add("home")
@@ -125,7 +169,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             onBackToLoginClicked = {
-                                authViewModel.clearError() // Bersihkan error saat kembali ke login
+                                authViewModel.clearError()
                                 currentScreen = "login"
                             }
                         )
@@ -145,6 +189,7 @@ class MainActivity : ComponentActivity() {
                             onDetailClicked = { _ -> },
                             onSelesaikanClicked = { currentScreen = "admin_edit_pengajuan" },
                             onLogoutClicked = {
+                                auth.signOut()
                                 currentScreen = "login"
                                 tabHistory.clear()
                             }
@@ -158,7 +203,7 @@ class MainActivity : ComponentActivity() {
                     }
                     "home" -> {
                         HomeScreen(
-                            userName = "Sahal",
+                            namaLengkap = namaLengkapUser,
                             onServiceSelected = { serviceName ->
                                 when (serviceName) {
                                     "Surat Keterangan Usaha" -> currentScreen = "surat_usaha"
@@ -220,8 +265,14 @@ class MainActivity : ComponentActivity() {
                     }
                     "profile" -> {
                         ProfileScreen(
-                            userName = "Sahal",
-                            userFullName = "Sahal Alfarizi",
+                            namaLengkap = namaLengkapUser,
+                            userRole = if (roleUser == "admin") "Administrator Desa Purwodadi Simpang" else "Warga Desa Purwodadi Simpang",
+                            nik = nikUser,
+                            tempatTanggalLahir = tempatTglLahirUser,
+                            pekerjaan = pekerjaanUser,
+                            agama = agamaUser,
+                            statusPerkawinan = statusUser,
+                            alamatLengkap = alamatUser,
                             onTabSelected = { tabIndex ->
                                 val target = when (tabIndex) {
                                     0 -> "home"
@@ -235,6 +286,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onEditClicked = { currentScreen = "edit_profile" },
                             onLogoutClicked = {
+                                auth.signOut()
                                 currentScreen = "login"
                                 tabHistory.clear()
                             },
@@ -248,9 +300,22 @@ class MainActivity : ComponentActivity() {
                     }
                     "edit_profile" -> {
                         EditProfileScreen(
-                            initialNama = "Sahal Alfarizi",
-                            onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" }
+                            authViewModel = authViewModel,
+                            initialNama = namaLengkapUser,
+                            initialNik = nikUser,
+                            initialTempatTgl = tempatTglLahirUser,
+                            initialPekerjaan = pekerjaanUser,
+                            initialAgama = agamaUser,
+                            initialStatus = statusUser,
+                            initialAlamat = alamatUser,
+                            onBackClicked = {
+                                fetchUserData()
+                                currentScreen = "profile"
+                            },
+                            onSaveSuccess = {
+                                fetchUserData()
+                                currentScreen = "profile"
+                            }
                         )
                     }
                     "ubah_email" -> UbahEmailScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
@@ -269,9 +334,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Fungsi helper terpusat untuk menangani Google Sign-In via Credential Manager
-     */
     private fun handleGoogleSignIn(onSuccess: () -> Unit) {
         if (authViewModel.isLoading.value) return
         authViewModel.setLoading(true)
