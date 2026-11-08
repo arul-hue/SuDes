@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.compose.ui.text.font.FontWeight
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -387,7 +388,7 @@ fun EditProfileDropdownField(
                 onClick = { expanded = !expanded },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(56.dp), // Tombol dibuat lebih tinggi agar mudah disentuh orang tua
                 shape = RoundedCornerShape(10.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
@@ -402,20 +403,37 @@ fun EditProfileDropdownField(
                         color = if (selectedValue.isBlank()) TextPlaceholder else TextPrimary,
                         style = AppTypography.BodyRegular
                     )
-                    Text(text = if (expanded) "▲" else "▼", color = TextSecondary, style = AppTypography.Caption)
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        color = GreenDesaPrimary,
+                        style = AppTypography.BodyRegular
+                    )
                 }
             }
 
+            // Menu Dropdown yang dipaksa terbuka ke bawah dengan offset
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .background(Color.White)
+                    .background(Color.White),
+                offset = androidx.compose.ui.unit.DpOffset(0.dp, 4.dp) // Posisi menu turun tepat di bawah tombol
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option, style = AppTypography.BodyRegular, color = TextPrimary) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 52.dp), // Area item pilihan lebih luas dan nyaman disentuh
+                        text = {
+                            Text(
+                                text = option,
+                                style = AppTypography.BodyRegular.copy(
+                                    fontWeight = if (option == selectedValue) FontWeight.Bold else FontWeight.Normal
+                                ),
+                                color = if (option == selectedValue) GreenDesaPrimary else TextPrimary
+                            )
+                        },
                         onClick = {
                             onOptionSelected(option)
                             expanded = false
