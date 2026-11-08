@@ -1,7 +1,9 @@
 package com.sudes.purwodadi
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import com.sudes.purwodadi.ui.theme.SudesTheme
@@ -11,8 +13,33 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SudesTheme {
-                // State untuk mengatur halaman aktif saat ini
                 var currentScreen by remember { mutableStateOf("splash") }
+
+                // RIWAYAT TAB GLOBAL (Menyimpan urutan tab: "home", "status", "profile")
+                val tabHistory = remember { mutableStateListOf("home") }
+                var backPressedTime by remember { mutableStateOf(0L) }
+                val context = this
+
+                // GLOBAL BACKHANDLER UNTUK 3 TAB UTAMA
+                if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
+                    BackHandler {
+                        if (tabHistory.size > 1) {
+                            // Hapus riwayat tab terakhir
+                            tabHistory.removeAt(tabHistory.size - 1)
+                            // Pindah ke tab sebelumnya yang ada di riwayat
+                            currentScreen = tabHistory.last()
+                        } else {
+                            // Jika sudah di akar riwayat (tab pertama), tekan 2x untuk keluar
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - backPressedTime < 2000) {
+                                finish()
+                            } else {
+                                backPressedTime = currentTime
+                                Toast.makeText(context, "Tekan sekali lagi untuk keluar aplikasi", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
 
                 when (currentScreen) {
                     "splash" -> {
@@ -22,8 +49,16 @@ class MainActivity : ComponentActivity() {
                     }
                     "login" -> {
                         LoginScreen(
-                            onLoginClicked = { _, _ -> currentScreen = "home" },
-                            onGoogleLoginClicked = { currentScreen = "home" },
+                            onLoginClicked = { _, _ ->
+                                currentScreen = "home"
+                                tabHistory.clear()
+                                tabHistory.add("home")
+                            },
+                            onGoogleLoginClicked = {
+                                currentScreen = "home"
+                                tabHistory.clear()
+                                tabHistory.add("home")
+                            },
                             onForgotPasswordClicked = { currentScreen = "forgot_password" },
                             onRegisterClicked = { currentScreen = "register" }
                         )
@@ -31,7 +66,11 @@ class MainActivity : ComponentActivity() {
                     "register" -> {
                         RegisterScreen(
                             onRegisterSubmitted = { _, _, _, _ -> currentScreen = "login" },
-                            onGoogleRegisterClicked = { currentScreen = "home" },
+                            onGoogleRegisterClicked = {
+                                currentScreen = "home"
+                                tabHistory.clear()
+                                tabHistory.add("home")
+                            },
                             onBackToLoginClicked = { currentScreen = "login" }
                         )
                     }
@@ -45,7 +84,6 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             userName = "Sahal",
                             onServiceSelected = { serviceName ->
-                                // Routing ketika menu surat diklik
                                 when (serviceName) {
                                     "Surat Keterangan Usaha" -> currentScreen = "surat_usaha"
                                     "Surat Keterangan Domisili" -> currentScreen = "surat_domisili"
@@ -55,10 +93,33 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onTabSelected = { tabIndex ->
-                                // Routing dari Bottom Navigation Bar di Beranda
-                                if (tabIndex == 2) {
-                                    currentScreen = "profile"
+                                val target = when (tabIndex) {
+                                    1 -> "status"
+                                    2 -> "profile"
+                                    else -> "home"
                                 }
+                                if (currentScreen != target) {
+                                    currentScreen = target
+                                    tabHistory.add(target) // Catat perpindahan tab ke riwayat global
+                                }
+                            }
+                        )
+                    }
+                    "status" -> {
+                        StatusScreen(
+                            onTabSelected = { tabIndex ->
+                                val target = when (tabIndex) {
+                                    0 -> "home"
+                                    2 -> "profile"
+                                    else -> "status"
+                                }
+                                if (currentScreen != target) {
+                                    currentScreen = target
+                                    tabHistory.add(target) // Catat perpindahan tab ke riwayat global
+                                }
+                            },
+                            onDetailClicked = { _ ->
+                                // Aksi lihat detail surat jika ada
                             }
                         )
                     }
@@ -67,44 +128,34 @@ class MainActivity : ComponentActivity() {
                             userName = "Sahal",
                             userFullName = "Sahal Alfarizi",
                             onTabSelected = { tabIndex ->
-                                if (tabIndex == 0) {
-                                    currentScreen = "home"
+                                val target = when (tabIndex) {
+                                    0 -> "home"
+                                    1 -> "status"
+                                    else -> "profile"
+                                }
+                                if (currentScreen != target) {
+                                    currentScreen = target
+                                    tabHistory.add(target) // Catat perpindahan tab ke riwayat global
                                 }
                             },
-                            onEditClicked = {
-                                currentScreen = "edit_profile" // Menuju ke halaman edit data diri[cite: 12]
-                            },
+                            onEditClicked = { currentScreen = "edit_profile" },
                             onLogoutClicked = {
-                                currentScreen = "login" // Keluar akun kembali ke halaman login
+                                currentScreen = "login"
+                                tabHistory.clear()
                             },
-                            onUbahEmailClicked = {
-                                currentScreen = "ubah_email" // <--- Ini yang membuat layarnya terbuka saat diklik
-                            },
-                            onGantiNoHpClicked = {
-                                currentScreen = "ganti_nohp"
-                            },
-                            onGantiPasswordClicked = {
-                                currentScreen = "ganti_password"
-                            },
-                            onVideoTutorialClicked = {
-                                currentScreen = "video_tutorial"
-                            },
-                            onBantuanFaqClicked = {
-                                currentScreen = "bantuan_faq"
-                            },
-                            onTentangAplikasiClicked = {
-                                currentScreen = "tentang_aplikasi"
-                            },
-                            onBackClicked = {
-                                currentScreen = "home"
-                            }
+                            onUbahEmailClicked = { currentScreen = "ubah_email" },
+                            onGantiNoHpClicked = { currentScreen = "ganti_nohp" },
+                            onGantiPasswordClicked = { currentScreen = "ganti_password" },
+                            onVideoTutorialClicked = { currentScreen = "video_tutorial" },
+                            onBantuanFaqClicked = { currentScreen = "bantuan_faq" },
+                            onTentangAplikasiClicked = { currentScreen = "tentang_aplikasi" },
                         )
                     }
                     "edit_profile" -> {
                         EditProfileScreen(
                             initialNama = "Sahal Alfarizi",
                             onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" } // Kembali ke profil setelah klik simpan
+                            onSaveSuccess = { currentScreen = "profile" }
                         )
                     }
                     "ubah_email" -> {

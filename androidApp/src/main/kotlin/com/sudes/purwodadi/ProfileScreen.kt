@@ -1,6 +1,5 @@
 package com.sudes.purwodadi
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,7 +27,6 @@ fun ProfileScreen(
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
-    onBackClicked: () -> Unit = {},
     onUbahEmailClicked: () -> Unit = {},
     onGantiNoHpClicked: () -> Unit = {},
     onGantiPasswordClicked: () -> Unit = {},
@@ -39,18 +37,6 @@ fun ProfileScreen(
     var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
     val scrollState = rememberScrollState()
     var showLogoutDialog by remember { mutableStateOf(false) } // State pop-up keluar akun
-
-    // 2. Tambahkan BackHandler di sini
-    BackHandler {
-        if (showLogoutDialog) {
-            // Jika pop-up konfirmasi keluar sedang tampil, tutup pop-upnya dulu
-            showLogoutDialog = false
-        } else {
-            // Jika tidak ada pop-up, arahkan kembali ke tab Beranda (indeks 0) atau panggil onBackClicked
-            selectedTab = 0
-            onTabSelected(0)
-        }
-    }
 
     Scaffold(
         bottomBar = {

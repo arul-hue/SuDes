@@ -1,6 +1,5 @@
 package com.sudes.purwodadi
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,38 +25,8 @@ fun HomeScreen(
     onTabSelected: (Int) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-
-    // Menyimpan riwayat urutan tab yang pernah dikunjungi pengguna
-    val tabHistory = remember { mutableStateListOf(0) }
-
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
-    var backPressedTime by remember { mutableStateOf(0L) }
 
-    // Logika Tombol Back HP Mengikuti Riwayat Tab (Tab Backstack)
-    BackHandler {
-        if (tabHistory.size > 1) {
-            // Hapus tab saat ini dari riwayat
-            tabHistory.removeAt(tabHistory.size - 1)
-            // Pindah ke tab sebelumnya di riwayat
-            val previousTab = tabHistory.last()
-            selectedTab = previousTab
-            onTabSelected(previousTab)
-        } else {
-            // Jika sudah di riwayat paling awal (Beranda), tekan 2x untuk keluar aplikasi
-            val currentTime = System.currentTimeMillis()
-            if (currentTime - backPressedTime < 2000) {
-                (context as? android.app.Activity)?.finish()
-            } else {
-                backPressedTime = currentTime
-                android.widget.Toast.makeText(
-                    context,
-                    "Tekan sekali lagi untuk keluar aplikasi",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
 
     Scaffold(
         bottomBar = {
@@ -72,7 +41,6 @@ fun HomeScreen(
                     onClick = {
                         if (selectedTab != 0) {
                             selectedTab = 0
-                            tabHistory.add(0) // Catat ke riwayat
                             onTabSelected(0)
                         }
                     },
@@ -91,7 +59,6 @@ fun HomeScreen(
                     onClick = {
                         if (selectedTab != 1) {
                             selectedTab = 1
-                            tabHistory.add(1) // Catat ke riwayat
                             onTabSelected(1)
                         }
                     },
@@ -110,7 +77,6 @@ fun HomeScreen(
                     onClick = {
                         if (selectedTab != 2) {
                             selectedTab = 2
-                            tabHistory.add(2) // Catat ke riwayat
                             onTabSelected(2)
                         }
                     },
