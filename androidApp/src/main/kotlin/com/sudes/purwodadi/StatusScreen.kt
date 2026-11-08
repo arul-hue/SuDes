@@ -45,21 +45,21 @@ fun StatusScreen(
     val listPengajuan = listOf(
         PengajuanItem(
             jenisSurat = "Surat Keterangan Domisili",
-            namaPemohon = "Sahal Alfarizi",
+            namaPemohon = "Sahal Aw",
             tanggal = "03 Nov 2026, 09.15",
             status = StatusPengajuan.PROSES,
             pesanStatus = "Sedang diverifikasi oleh Perangkat Desa"
         ),
         PengajuanItem(
             jenisSurat = "Surat Keterangan Usaha",
-            namaPemohon = "Roy Pratama",
+            namaPemohon = "Roy UX",
             tanggal = "01 Nov 2026, 14.20",
             status = StatusPengajuan.DITERIMA,
             pesanStatus = "Surat dapat diambil di Balai Desa"
         ),
         PengajuanItem(
             jenisSurat = "Surat Keterangan Tidak Mampu",
-            namaPemohon = "Siti Aminah",
+            namaPemohon = "Syahrul Rek",
             tanggal = "29 Okt 2026, 11.00",
             status = StatusPengajuan.DITOLAK,
             pesanStatus = "Berkas kurang lengkap, silakan ajukan ulang"
