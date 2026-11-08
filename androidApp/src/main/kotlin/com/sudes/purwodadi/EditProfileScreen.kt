@@ -33,14 +33,14 @@ fun EditProfileScreen(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: () -> Unit = {}
 ) {
-    // State Form Edit Data Diri diisi dengan data awal dari database
+    // State Form Edit Data Diri diisi dengan data awal (kosong jika belum ada)
     var namaLengkap by remember { mutableStateOf(initialNama) }
-    var nik by remember { mutableStateOf(initialNik) }
-    var tempatTanggalLahir by remember { mutableStateOf(initialTempatTgl) }
-    var pekerjaan by remember { mutableStateOf(initialPekerjaan) }
-    var agama by remember { mutableStateOf(initialAgama) }
-    var statusPerkawinan by remember { mutableStateOf(initialStatus) }
-    var alamatLengkap by remember { mutableStateOf(initialAlamat) }
+    var nik by remember { mutableStateOf(if (initialNik == "-") "" else initialNik) }
+    var tempatTanggalLahir by remember { mutableStateOf(if (initialTempatTgl == "-") "" else initialTempatTgl) }
+    var pekerjaan by remember { mutableStateOf(if (initialPekerjaan == "-") "" else initialPekerjaan) }
+    var agama by remember { mutableStateOf(if (initialAgama == "-") "" else initialAgama) }
+    var statusPerkawinan by remember { mutableStateOf(if (initialStatus == "-") "" else initialStatus) }
+    var alamatLengkap by remember { mutableStateOf(if (initialAlamat == "-") "" else initialAlamat) }
 
     // State untuk Mengatur Munculnya Pop-up
     var showConfirmDialog by remember { mutableStateOf(false) }
@@ -228,12 +228,12 @@ fun EditProfileScreen(
                             // Panggil fungsi update ke Firestore melalui AuthViewModel
                             authViewModel.updateProfileData(
                                 namaLengkap = namaLengkap,
-                                nik = nik,
-                                tempatTanggalLahir = tempatTanggalLahir,
-                                pekerjaan = pekerjaan,
-                                agama = agama,
-                                statusPerkawinan = statusPerkawinan,
-                                alamatLengkap = alamatLengkap,
+                                nik = if (nik.isBlank()) "-" else nik,
+                                tempatTanggalLahir = if (tempatTanggalLahir.isBlank()) "-" else tempatTanggalLahir,
+                                pekerjaan = if (pekerjaan.isBlank()) "-" else pekerjaan,
+                                agama = if (agama.isBlank()) "-" else agama,
+                                statusPerkawinan = if (statusPerkawinan.isBlank()) "-" else statusPerkawinan,
+                                alamatLengkap = if (alamatLengkap.isBlank()) "-" else alamatLengkap,
                                 onSuccess = {
                                     isSavedSuccess = true
                                 },
