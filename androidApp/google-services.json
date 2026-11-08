@@ -12,7 +12,20 @@
           "package_name": "com.sudes.purwodadi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "623723710056-3og37t0ohdk6gg07ef84b6c70cgh0vm5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sudes.purwodadi",
+            "certificate_hash": "18b352c623addf134315ef2dd9cca75c12cb1bc2"
+          }
+        },
+        {
+          "client_id": "623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBd81dKL-DkcDD8r-g7-2Xn_T55XtElr28"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -6,6 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.lifecycle.lifecycleScope
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 import com.sudes.purwodadi.ui.theme.SudesTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,6 +21,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             SudesTheme {
                 var currentScreen by remember { mutableStateOf("splash") }
+
+                // Inisialisasi AuthViewModel utama di MainActivity
+                val authViewModel = remember { AuthViewModel() }
+                val isLoading by authViewModel.isLoading.collectAsState()
 
                 // RIWAYAT TAB GLOBAL (Menyimpan urutan tab: "home", "status", "profile")
                 val tabHistory = remember { mutableStateListOf("home") }
@@ -25,7 +36,6 @@ class MainActivity : ComponentActivity() {
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
                 var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt03_sahal.jpg") }
 
-                // State dinamis untuk menampung daftar rincian data inputan surat
                 var selectedFields by remember {
                     mutableStateOf(
                         listOf(
@@ -43,16 +53,12 @@ class MainActivity : ComponentActivity() {
 
                 val context = this
 
-                // GLOBAL BACKHANDLER UNTUK 3 TAB UTAMA
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            // Hapus riwayat tab terakhir dengan benar
                             tabHistory.removeAt(tabHistory.size - 1)
-                            // Pindah ke tab sebelumnya yang ada di riwayat
                             currentScreen = tabHistory.last()
                         } else {
-                            // Jika sudah di akar riwayat (tab pertama), tekan 2x untuk keluar
                             val currentTime = System.currentTimeMillis()
                             if (currentTime - backPressedTime < 2000) {
                                 finish()
@@ -73,7 +79,6 @@ class MainActivity : ComponentActivity() {
                     "login" -> {
                         LoginScreen(
                             onLoginClicked = { email, _ ->
-                                // Validasi role berdasarkan email
                                 if (email.equals("admin@purwodadi.desa.id", ignoreCase = true) ||
                                     email.contains("admin", ignoreCase = true)) {
                                     currentScreen = "admin_dashboard"
@@ -94,11 +99,56 @@ class MainActivity : ComponentActivity() {
                     }
                     "register" -> {
                         RegisterScreen(
-                            onRegisterSubmitted = { _, _, _, _ -> currentScreen = "login" },
+                            authViewModel = authViewModel,
+                            isLoading = isLoading,
                             onGoogleRegisterClicked = {
-                                currentScreen = "home"
-                                tabHistory.clear()
-                                tabHistory.add("home")
+                                // 1. NYALAKAN LOADING SEGERA SAAT TOMBOL DIKLIK (Sebelum Credential Manager)
+                                authViewModel.setLoading(true)
+
+                                val credentialManager = CredentialManager.create(this@MainActivity)
+
+                                val googleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setServerClientId("623723710056-fup3cgmup9pqfmvhikba14clm1vrqrl9.apps.googleusercontent.com")
+                                    .build()
+
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleIdOption)
+                                    .build()
+
+                                lifecycleScope.launch {
+                                    try {
+                                        val result = credentialManager.getCredential(this@MainActivity, request)
+                                        val credential = result.credential
+
+                                        if (credential is CustomCredential &&
+                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+
+                                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                            val googleIdToken = googleIdTokenCredential.idToken
+                                            val googleName = googleIdTokenCredential.displayName ?: "Warga Purwodadi"
+                                            val googleEmail = googleIdTokenCredential.id
+
+                                            authViewModel.signInWithGoogleCredential(
+                                                idToken = googleIdToken,
+                                                namaLengkap = googleName,
+                                                email = googleEmail,
+                                                onSuccess = {
+                                                    currentScreen = "home"
+                                                    tabHistory.clear()
+                                                    tabHistory.add("home")
+                                                    Toast.makeText(this@MainActivity, "Berhasil masuk dengan Google!", Toast.LENGTH_SHORT).show()
+                                                }
+                                            )
+                                        } else {
+                                            authViewModel.setLoading(false)
+                                        }
+                                    } catch (e: Exception) {
+                                        // Matikan loading jika user membatalkan dialog / terjadi error
+                                        authViewModel.setLoading(false)
+                                        Toast.makeText(this@MainActivity, "Google Sign-In dibatalkan/gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
                             },
                             onBackToLoginClicked = { currentScreen = "login" }
                         )
@@ -111,15 +161,9 @@ class MainActivity : ComponentActivity() {
                     }
                     "admin_dashboard" -> {
                         AdminDashboardScreen(
-                            onDetailClicked = { jenisSurat ->
-                                // Opsional
-                            },
-                            onSelesaikanClicked = { idPengajuan ->
-                                // Ketika tombol Selesai diklik, buka laman edit/koreksi admin
-                                currentScreen = "admin_edit_pengajuan"
-                            },
+                            onDetailClicked = { _ -> },
+                            onSelesaikanClicked = { currentScreen = "admin_edit_pengajuan" },
                             onLogoutClicked = {
-                                // Arahkan kembali ke halaman login dan bersihkan riwayat
                                 currentScreen = "login"
                                 tabHistory.clear()
                             }
@@ -151,7 +195,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 if (currentScreen != target) {
                                     currentScreen = target
-                                    tabHistory.add(target) // Catat perpindahan tab ke riwayat global
+                                    tabHistory.add(target)
                                 }
                             }
                         )
@@ -171,66 +215,12 @@ class MainActivity : ComponentActivity() {
                             },
                             onDetailClicked = { jenisSurat ->
                                 selectedJenisSurat = jenisSurat
-
-                                when {
-                                    jenisSurat.contains("Domisili", ignoreCase = true) -> {
-                                        selectedStatusSurat = StatusPengajuan.PROSES
-                                        selectedAlasanDitolak = null
-                                        selectedNamaFileRt = "pengantar_rt03_sahal.jpg"
-                                        selectedFields = listOf(
-                                            DetailFieldItem("Nama Lengkap", "Sahal Aw"),
-                                            DetailFieldItem("NIK", "3501230101900001"),
-                                            DetailFieldItem("Tempat, Tanggal Lahir", "Bandar Lampung, 01 Januari 1990"),
-                                            DetailFieldItem("Jenis Kelamin", "Laki-laki"),
-                                            DetailFieldItem("Agama", "Islam"),
-                                            DetailFieldItem("Pekerjaan", "Wiraswasta"),
-                                            DetailFieldItem("Alamat Lengkap", "Jl. Melati No. 12, RT 03/RW 05, Desa Purwodadi Simpang"),
-                                            DetailFieldItem("Alamat Tempat Tinggal Saat Ini", "Dusun II RT 03, Purwodadi Simpang, Kec. Tanjung Bintang")
-                                        )
-                                    }
-                                    jenisSurat.contains("Usaha", ignoreCase = true) -> {
-                                        selectedStatusSurat = StatusPengajuan.DITERIMA
-                                        selectedAlasanDitolak = null
-                                        selectedNamaFileRt = "pengantar_rt03_roy.jpg"
-                                        selectedFields = listOf(
-                                            DetailFieldItem("Nama Lengkap", "Roy UX"),
-                                            DetailFieldItem("NIK", "3501230101900002"),
-                                            DetailFieldItem("Tempat, Tanggal Lahir", "Bandar Lampung, 12 Mei 1992"),
-                                            DetailFieldItem("Jenis Kelamin", "Laki-laki"),
-                                            DetailFieldItem("Agama", "Islam"),
-                                            DetailFieldItem("Status Perkawinan", "Kawin"),
-                                            DetailFieldItem("Pekerjaan", "Wiraswasta"),
-                                            DetailFieldItem("Alamat Lengkap", "Jl. Melati No. 12, RT 03/RW 05, Desa Purwodadi Simpang"),
-                                            DetailFieldItem("Nama / Deskripsi Usaha", "Warung Sembako Berkah"),
-                                            DetailFieldItem("Lokasi Usaha", "Dusun II RT 03, Pasar Desa, Purwodadi Simpang")
-                                        )
-                                    }
-                                    jenisSurat.contains("Tidak Mampu", ignoreCase = true) || jenisSurat.contains("SKTM", ignoreCase = true) -> {
-                                        selectedStatusSurat = StatusPengajuan.DITOLAK
-                                        selectedAlasanDitolak = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
-                                        selectedNamaFileRt = "pengantar_syahrul.jpg"
-                                        selectedFields = listOf(
-                                            DetailFieldItem("Nama Lengkap", "Syahrul Rek"),
-                                            DetailFieldItem("NIK", "3501230202900002"),
-                                            DetailFieldItem("Tempat, Tanggal Lahir", "Bandar Lampung, 15 Mei 1988"),
-                                            DetailFieldItem("Jenis Kelamin", "Laki-laki"),
-                                            DetailFieldItem("Agama", "Islam"),
-                                            DetailFieldItem("Status Perkawinan", "Belum Kawin"),
-                                            DetailFieldItem("Pekerjaan", "Mahasiswa"),
-                                            DetailFieldItem("Alamat Lengkap", "Jl. Anggrek No. 5, RT 01/RW 02, Desa Purwodadi Simpang"),
-                                            DetailFieldItem("Nomor Kartu Keluarga (KK)", "3501239908120001"),
-                                            DetailFieldItem("Nama Kepala Keluarga (di KK)", "Budi Santoso"),
-                                            DetailFieldItem("Keperluan Pembuatan Surat", "Keringanan UKT Kuliah")
-                                        )
-                                    }
-                                }
                                 currentScreen = "detail_pengajuan"
                             },
                             onResubmitClicked = { jenisSurat ->
                                 when {
                                     jenisSurat.contains("Usaha", ignoreCase = true) -> currentScreen = "surat_usaha"
                                     jenisSurat.contains("Domisili", ignoreCase = true) -> currentScreen = "surat_domisili"
-                                    jenisSurat.contains("Tidak Mampu", ignoreCase = true) || jenisSurat.contains("SKTM", ignoreCase = true) -> currentScreen = "surat_sktm"
                                     else -> currentScreen = "home"
                                 }
                             }
@@ -244,14 +234,7 @@ class MainActivity : ComponentActivity() {
                             namaFileRt = selectedNamaFileRt,
                             fields = selectedFields,
                             onBackClicked = { currentScreen = "status" },
-                            onResubmitClicked = { jenisSurat ->
-                                when {
-                                    jenisSurat.contains("Usaha", ignoreCase = true) -> currentScreen = "surat_usaha"
-                                    jenisSurat.contains("Domisili", ignoreCase = true) -> currentScreen = "surat_domisili"
-                                    jenisSurat.contains("Tidak Mampu", ignoreCase = true) || jenisSurat.contains("SKTM", ignoreCase = true) -> currentScreen = "surat_sktm"
-                                    else -> currentScreen = "home"
-                                }
-                            }
+                            onResubmitClicked = { currentScreen = "home" }
                         )
                     }
                     "profile" -> {
@@ -266,7 +249,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 if (currentScreen != target) {
                                     currentScreen = target
-                                    tabHistory.add(target) // Catat perpindahan tab ke riwayat global
+                                    tabHistory.add(target)
                                 }
                             },
                             onEditClicked = { currentScreen = "edit_profile" },
@@ -289,63 +272,17 @@ class MainActivity : ComponentActivity() {
                             onSaveSuccess = { currentScreen = "profile" }
                         )
                     }
-                    "ubah_email" -> {
-                        UbahEmailScreen(
-                            onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" }
-                        )
-                    }
-                    "ganti_nohp" -> {
-                        GantiNoHpScreen(
-                            onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" }
-                        )
-                    }
-                    "ganti_password" -> {
-                        GantiPasswordScreen(
-                            onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" }
-                        )
-                    }
-                    "video_tutorial" -> {
-                        VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
-                    }
-                    "bantuan_faq" -> {
-                        BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })
-                    }
-                    "tentang_aplikasi" -> {
-                        TentangAplikasiScreen(onBackClicked = { currentScreen = "profile" })
-                    }
-                    "surat_usaha" -> {
-                        SuratUsahaScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = { currentScreen = "home" }
-                        )
-                    }
-                    "surat_domisili" -> {
-                        SuratDomisiliScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = { currentScreen = "home" }
-                        )
-                    }
-                    "surat_kehilangan" -> {
-                        SuratKehilanganScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = { currentScreen = "home" }
-                        )
-                    }
-                    "surat_kematian" -> {
-                        SuratKematianScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = { currentScreen = "home" }
-                        )
-                    }
-                    "surat_sktm" -> {
-                        SuratTidakMampuScreen(
-                            onBackClicked = { currentScreen = "home" },
-                            onSubmitSuccess = { currentScreen = "home" }
-                        )
-                    }
+                    "ubah_email" -> UbahEmailScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
+                    "ganti_nohp" -> GantiNoHpScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
+                    "ganti_password" -> GantiPasswordScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
+                    "video_tutorial" -> VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
+                    "bantuan_faq" -> BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })
+                    "tentang_aplikasi" -> TentangAplikasiScreen(onBackClicked = { currentScreen = "profile" })
+                    "surat_usaha" -> SuratUsahaScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
+                    "surat_domisili" -> SuratDomisiliScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
+                    "surat_kehilangan" -> SuratKehilanganScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
+                    "surat_kematian" -> SuratKematianScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
+                    "surat_sktm" -> SuratTidakMampuScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                 }
             }
         }

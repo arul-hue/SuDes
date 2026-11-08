@@ -25,22 +25,25 @@ import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun RegisterScreen(
-    onRegisterSubmitted: (String, String, String, String) -> Unit = { _, _, _, _ -> },
+    authViewModel: AuthViewModel = remember { AuthViewModel() },
+    isLoading: Boolean = false,
     onGoogleRegisterClicked: () -> Unit = {},
     onBackToLoginClicked: () -> Unit = {}
 ) {
+    val viewModelLoading by authViewModel.isLoading.collectAsState()
+    val isAnyLoading = isLoading || viewModelLoading
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+
     var namaLengkap by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var nomorHp by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var konfirmasiPassword by remember { mutableStateOf("") }
 
-    // State untuk mengontrol visibilitas password
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     var showSuccessDialog by remember { mutableStateOf(false) }
-
     val scrollState = rememberScrollState()
 
     BackHandler {
@@ -88,13 +91,14 @@ fun RegisterScreen(
                     }
                 }
 
-                // Bagian Isi Form dengan Font Ukuran Proporsional
+                // Bagian Isi Form
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
                     // Tombol Masuk dengan Google
                     OutlinedButton(
                         onClick = onGoogleRegisterClicked,
+                        enabled = !isAnyLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -180,25 +184,49 @@ fun RegisterScreen(
                         onVisibilityChanged = { confirmPasswordVisible = !confirmPasswordVisible }
                     )
 
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.error,
+                            style = AppTypography.Caption
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Tombol Daftar Sekarang
                     Button(
                         onClick = {
-                            if (email.isNotBlank() && password.isNotBlank()) {
-                                showSuccessDialog = true
-                                onRegisterSubmitted(namaLengkap, email, nomorHp, password)
-                            }
+                            authViewModel.registerUser(
+                                namaLengkap = namaLengkap,
+                                email = email,
+                                nomorHp = nomorHp,
+                                password = password,
+                                konfirmasiPassword = konfirmasiPassword,
+                                onSuccess = {
+                                    showSuccessDialog = true
+                                }
+                            )
                         },
+                        enabled = !isAnyLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                     ) {
-                        Text(
-                            text = "Daftar Sekarang",
-                            style = AppTypography.ButtonText
-                        )
+                        if (isAnyLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Daftar Sekarang",
+                                style = AppTypography.ButtonText
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -223,6 +251,32 @@ fun RegisterScreen(
                                 color = GreenDesaPrimary
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        // OVERLAY LOADING (Otomatis muncul saat isAnyLoading bernilai true)
+        if (isAnyLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    shadowElevation = 8.dp
+                ) {
+                    Box(
+                        modifier = Modifier.padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = GreenDesaPrimary,
+                            modifier = Modifier.size(40.dp)
+                        )
                     }
                 }
             }
@@ -274,7 +328,7 @@ fun RegisterScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "Akun Anda berhasil dibuat.\nSilakan masuk untuk melanjutkan.",
+                            text = "Akun Anda berhasil dibuat & tersimpan di cloud.\nSilakan masuk untuk melanjutkan.",
                             style = AppTypography.BodyRegular,
                             color = TextSecondary,
                             textAlign = TextAlign.Center
@@ -305,7 +359,6 @@ fun RegisterScreen(
     }
 }
 
-// Komponen Pendukung TextField Pendaftaran dengan Ikon Mata yang Berfungsi
 @Composable
 fun RegisterField(
     label: String,
