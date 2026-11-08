@@ -117,6 +117,11 @@ class MainActivity : ComponentActivity() {
                             onSelesaikanClicked = { idPengajuan ->
                                 // Ketika tombol Selesai diklik, buka laman edit/koreksi admin
                                 currentScreen = "admin_edit_pengajuan"
+                            },
+                            onLogoutClicked = {
+                                // Arahkan kembali ke halaman login dan bersihkan riwayat
+                                currentScreen = "login"
+                                tabHistory.clear()
                             }
                         )
                     }

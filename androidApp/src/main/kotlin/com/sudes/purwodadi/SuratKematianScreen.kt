@@ -163,7 +163,17 @@ fun SuratKematianScreen(
                 KematianFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
                 KematianFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
                 KematianFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan terakhir")
-                KematianFormTextField(label = "Alamat Lengkap", value = alamatAlmarhum, onValueChange = { alamatAlmarhum = it }, placeholder = "Masukkan alamat almarhum")
+
+                // 👉 ALAMAT LENGKAP ALMARHUM (Multi-line)
+                KematianFormTextField(
+                    label = "Alamat Lengkap",
+                    value = alamatAlmarhum,
+                    onValueChange = { alamatAlmarhum = it },
+                    placeholder = "Masukkan alamat almarhum",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -192,7 +202,18 @@ fun SuratKematianScreen(
             KematianCardSection(title = "DATA PELAPOR") {
                 KematianFormTextField(label = "Nama Pelapor", value = namaPelapor, onValueChange = { namaPelapor = it }, placeholder = "Masukkan nama pelapor")
                 KematianFormTextField(label = "NIK Pelapor", value = nikPelapor, onValueChange = { nikPelapor = it }, placeholder = "Masukkan 16 digit NIK pelapor")
-                KematianFormTextField(label = "Alamat Pelapor", value = alamatPelapor, onValueChange = { alamatPelapor = it }, placeholder = "Masukkan alamat lengkap pelapor")
+
+                // 👉 ALAMAT PELAPOR (Multi-line)
+                KematianFormTextField(
+                    label = "Alamat Pelapor",
+                    value = alamatPelapor,
+                    onValueChange = { alamatPelapor = it },
+                    placeholder = "Masukkan alamat lengkap pelapor",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
+
                 KematianFormTextField(label = "Status / Hubungan dengan Almarhum", value = hubunganPelapor, onValueChange = { hubunganPelapor = it }, placeholder = "Contoh: Anak / Suami / Istri")
             }
 
@@ -369,9 +390,17 @@ fun KematianCardSection(title: String, content: @Composable ColumnScope.() -> Un
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
+// Komponen Input TextField yang Mendukung Multi-line
 @Composable
-fun KematianFormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun KematianFormTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default true untuk field biasa
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -382,7 +411,9 @@ fun KematianFormTextField(label: String, value: String, onValueChange: (String) 
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

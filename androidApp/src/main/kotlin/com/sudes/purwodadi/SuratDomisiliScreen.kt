@@ -145,18 +145,32 @@ fun SuratDomisiliScreen(
                 DomisiliFormDropdownField(label = "Jenis Kelamin", selectedValue = jenisKelamin.ifEmpty { "Pilih jenis kelamin" })
                 DomisiliFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
                 DomisiliFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan")
-                DomisiliFormTextField(label = "Alamat Lengkap", value = alamatLengkap, onValueChange = { alamatLengkap = it }, placeholder = "Masukkan alamat lengkap sesuai KTP")
+
+                // 👉 ALAMAT LENGKAP (SESUAI KTP) DIATUR MULTI-LINE (3-4 BARIS)
+                DomisiliFormTextField(
+                    label = "Alamat Lengkap",
+                    value = alamatLengkap,
+                    onValueChange = { alamatLengkap = it },
+                    placeholder = "Masukkan alamat lengkap sesuai KTP",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // KARTU 2: DETAIL DOMISILI
             DomisiliCardSection(title = "DETAIL DOMISILI") {
+                // 👉 ALAMAT TEMPAT TINGGAL SAAT INI DIATUR MULTI-LINE (3-4 BARIS)
                 DomisiliFormTextField(
                     label = "Alamat Tempat Tinggal Saat Ini",
                     value = alamatDomisiliSekarang,
                     onValueChange = { alamatDomisiliSekarang = it },
-                    placeholder = "Masukkan alamat domisili sekarang"
+                    placeholder = "Masukkan alamat domisili sekarang",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
                 )
             }
 
@@ -333,9 +347,17 @@ fun DomisiliCardSection(title: String, content: @Composable ColumnScope.() -> Un
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
+// Komponen Input TextField yang Mendukung Multi-line untuk Alamat
 @Composable
-fun DomisiliFormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun DomisiliFormTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default true untuk field biasa
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -346,7 +368,9 @@ fun DomisiliFormTextField(label: String, value: String, onValueChange: (String) 
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

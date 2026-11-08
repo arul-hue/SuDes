@@ -147,7 +147,17 @@ fun SuratKehilanganScreen(
                 KehilanganFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan")
                 KehilanganFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
                 KehilanganFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
-                KehilanganFormTextField(label = "Alamat Lengkap", value = alamatLengkap, onValueChange = { alamatLengkap = it }, placeholder = "Masukkan alamat sesuai KTP")
+
+                // 👉 ALAMAT LENGKAP DIATUR MULTI-LINE (3-4 BARIS)
+                KehilanganFormTextField(
+                    label = "Alamat Lengkap",
+                    value = alamatLengkap,
+                    onValueChange = { alamatLengkap = it },
+                    placeholder = "Masukkan alamat sesuai KTP",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -157,7 +167,17 @@ fun SuratKehilanganScreen(
                 KehilanganFormTextField(label = "Hari Kejadian", value = hariKejadian, onValueChange = { hariKejadian = it }, placeholder = "Contoh: Kamis")
                 KehilanganFormTextField(label = "Tanggal Kejadian", value = tanggalKejadian, onValueChange = { tanggalKejadian = it }, placeholder = "Contoh: 05 November 2026")
                 KehilanganFormTextField(label = "Jam Perkiraan Hilang", value = jamPerkiraanHilang, onValueChange = { jamPerkiraanHilang = it }, placeholder = "Contoh: Sekitar Pukul 10.00 WIB")
-                KehilanganFormTextField(label = "Barang / Surat yang Hilang", value = barangHilang, onValueChange = { barangHilang = it }, placeholder = "Contoh: Dompet berisi KTP & STNK")
+
+                // 👉 BARANG / SURAT YANG HILANG DIATUR MULTI-LINE (2-3 BARIS)
+                KehilanganFormTextField(
+                    label = "Barang / Surat yang Hilang",
+                    value = barangHilang,
+                    onValueChange = { barangHilang = it },
+                    placeholder = "Contoh: Dompet berisi KTP & STNK",
+                    singleLine = false,
+                    minLines = 2,
+                    maxLines = 3
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -333,9 +353,17 @@ fun KehilanganCardSection(title: String, content: @Composable ColumnScope.() -> 
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
+// Komponen Input TextField yang Mendukung Multi-line
 @Composable
-fun KehilanganFormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun KehilanganFormTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default true untuk field biasa
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -346,7 +374,9 @@ fun KehilanganFormTextField(label: String, value: String, onValueChange: (String
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

@@ -110,6 +110,7 @@ fun SuratUsahaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding() // 👈 Ditambahkan agar stabil dan bebas getar saat keyboard aktif
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
@@ -146,7 +147,17 @@ fun SuratUsahaScreen(
                 FormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
                 FormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
                 FormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan")
-                FormTextField(label = "Alamat Lengkap", value = alamatLengkap, onValueChange = { alamatLengkap = it }, placeholder = "Masukkan alamat lengkap sesuai KTP")
+
+                // 👉 ALAMAT LENGKAP (Multi-line 3-4 baris)
+                FormTextField(
+                    label = "Alamat Lengkap",
+                    value = alamatLengkap,
+                    onValueChange = { alamatLengkap = it },
+                    placeholder = "Masukkan alamat lengkap sesuai KTP",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -154,7 +165,17 @@ fun SuratUsahaScreen(
             // KARTU 2: DETAIL USAHA
             CardSection(title = "DETAIL USAHA") {
                 FormTextField(label = "Nama / Deskripsi Usaha", value = namaUsaha, onValueChange = { namaUsaha = it }, placeholder = "Contoh: Warung Sembako Berkah")
-                FormTextField(label = "Lokasi Usaha", value = lokasiUsaha, onValueChange = { lokasiUsaha = it }, placeholder = "Masukkan lokasi/alamat tempat usaha")
+
+                // 👉 LOKASI USAHA (Multi-line 2-3 baris)
+                FormTextField(
+                    label = "Lokasi Usaha",
+                    value = lokasiUsaha,
+                    onValueChange = { lokasiUsaha = it },
+                    placeholder = "Masukkan lokasi/alamat tempat usaha",
+                    singleLine = false,
+                    minLines = 2,
+                    maxLines = 3
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -330,9 +351,17 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
+// Komponen Input TextField yang Mendukung Multi-line & Ukuran Font Ramah Lansia
 @Composable
-fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun FormTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default true untuk field biasa
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -343,7 +372,9 @@ fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit,
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

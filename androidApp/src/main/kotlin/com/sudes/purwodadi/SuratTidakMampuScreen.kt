@@ -148,7 +148,17 @@ fun SuratTidakMampuScreen(
                 SktmFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
                 SktmFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
                 SktmFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan")
-                SktmFormTextField(label = "Alamat Lengkap", value = alamatLengkap, onValueChange = { alamatLengkap = it }, placeholder = "Masukkan alamat sesuai KTP")
+
+                // 👉 ALAMAT LENGKAP (Multi-line 3-4 baris)
+                SktmFormTextField(
+                    label = "Alamat Lengkap",
+                    value = alamatLengkap,
+                    onValueChange = { alamatLengkap = it },
+                    placeholder = "Masukkan alamat sesuai KTP",
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 4
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -157,7 +167,17 @@ fun SuratTidakMampuScreen(
             SktmCardSection(title = "DETAIL KELUARGA & KEPERLUAN") {
                 SktmFormTextField(label = "Nomor Kartu Keluarga (KK)", value = nomorKK, onValueChange = { nomorKK = it }, placeholder = "Masukkan nomor KK")
                 SktmFormTextField(label = "Nama Kepala Keluarga (di KK)", value = namaKepalaKeluarga, onValueChange = { namaKepalaKeluarga = it }, placeholder = "Contoh: Budi Santoso")
-                SktmFormTextField(label = "Keperluan Pembuatan Surat", value = keperluanSurat, onValueChange = { keperluanSurat = it }, placeholder = "Contoh: Persyaratan Berobat / Sekolah / Beasiswa")
+
+                // 👉 KEPERLUAN PEMBUATAN SURAT (Multi-line 2-3 baris)
+                SktmFormTextField(
+                    label = "Keperluan Pembuatan Surat",
+                    value = keperluanSurat,
+                    onValueChange = { keperluanSurat = it },
+                    placeholder = "Contoh: Persyaratan Berobat / Sekolah / Beasiswa",
+                    singleLine = false,
+                    minLines = 2,
+                    maxLines = 3
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -333,9 +353,17 @@ fun SktmCardSection(title: String, content: @Composable ColumnScope.() -> Unit) 
     }
 }
 
-// Komponen Input TextField dengan ukuran font ramah lansia & fokus hijau
+// Komponen Input TextField yang Mendukung Multi-line
 @Composable
-fun SktmFormTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun SktmFormTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default true untuk field biasa
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -346,7 +374,9 @@ fun SktmFormTextField(label: String, value: String, onValueChange: (String) -> U
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

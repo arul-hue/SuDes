@@ -125,11 +125,16 @@ fun EditProfileScreen(
                 label = "Status Perkawinan",
                 selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" }
             )
+
+            // 👇 ALAMAT LENGKAP DIATUR MENJADI MULTI-LINE (MIN 3 BARIS, MAX 4 BARIS)
             EditProfileTextField(
                 label = "Alamat Lengkap",
                 value = alamatLengkap,
                 onValueChange = { alamatLengkap = it },
-                placeholder = "Masukkan alamat lengkap sesuai KTP"
+                placeholder = "Masukkan alamat lengkap sesuai KTP",
+                singleLine = false,
+                minLines = 3,
+                maxLines = 4
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -293,9 +298,17 @@ fun EditProfileScreen(
     }
 }
 
-// Komponen Input TextField Khusus Edit Profil (Menggunakan Root Typo)
+// Komponen Input TextField Khusus Edit Profil (Mendukung Multi-line, minLines, & maxLines)
 @Composable
-fun EditProfileTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+fun EditProfileTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true, // Default tetap single-line
+    minLines: Int = 1,
+    maxLines: Int = 1
+) {
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -306,7 +319,9 @@ fun EditProfileTextField(label: String, value: String, onValueChange: (String) -
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,

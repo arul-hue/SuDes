@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.compose.animation.animateContentSize
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -298,13 +299,16 @@ fun AdminEditPengajuanScreen(
                             onValueChange = { alasanDitolak = it },
                             placeholder = {
                                 Text(
-                                    "Contoh: Foto surat pengantar RT buram dan tidak terbaca dengan jelas. Mohon ajukan ulang.",
+                                    "Contoh: Foto surat pengantar RT buram / tidak terbaca.",
                                     style = AppTypography.BodyRegular,
                                     color = TextPlaceholder
                                 )
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = AppTypography.BodyRegular.copy(fontWeight = FontWeight.SemiBold, color = RedRejectedText),
+                            modifier = Modifier.fillMaxWidth(), // <-- Diperbaiki, modifier kembali normal
                             shape = RoundedCornerShape(12.dp),
+                            minLines = 2,       // Tinggi awal minimal 2 baris
+                            maxLines = 4,       // Batas maksimal 4 baris agar tetap rapi
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = RedRejectedContainer.copy(alpha = 0.5f),
                                 unfocusedContainerColor = RedRejectedContainer.copy(alpha = 0.3f),

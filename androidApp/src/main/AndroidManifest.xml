@@ -11,6 +11,7 @@
 
         <activity
             android:name="com.sudes.purwodadi.MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter>

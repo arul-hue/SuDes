@@ -29,10 +29,14 @@ data class AdminPengajuanItem(
 @Composable
 fun AdminDashboardScreen(
     onDetailClicked: (String) -> Unit = {},
-    onSelesaikanClicked: (String) -> Unit = {}
+    onSelesaikanClicked: (String) -> Unit = {},
+    onLogoutClicked: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Semua") }
+
+    // State untuk mengontrol pop-up konfirmasi logout
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
     val filterScrollState = rememberScrollState()
@@ -89,7 +93,7 @@ fun AdminDashboardScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            // HEADER ATAS HIJAU KHUSUS ADMIN
+            // HEADER ATAS HIJAU (Berisi Judul, Tulisan Admin, & Tombol Keluar)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +112,7 @@ fun AdminDashboardScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "SUDES",
+                            text = "Admin", // Diubah dari "SUDES" menjadi "Admin"
                             style = AppTypography.Caption.copy(
                                 color = Color.White.copy(alpha = 0.85f),
                                 fontWeight = FontWeight.Bold
@@ -116,17 +120,12 @@ fun AdminDashboardScreen(
                         )
                     }
 
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.White.copy(alpha = 0.2f)
-                    ) {
-                        Text(
-                            text = "Admin",
-                            style = AppTypography.Caption.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            ),
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                    // TOMBOL KELUAR DI HEADER KANAN
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Keluar Akun",
+                            tint = Color.White
                         )
                     }
                 }
@@ -212,6 +211,78 @@ fun AdminDashboardScreen(
                 }
             }
         }
+    }
+
+    // POP-UP DIALOG KONFIRMASI KELUAR AKUN
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color(0xFFFEE2E2)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = null,
+                                tint = Color(0xFFDC2626)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Keluar dari Akun Admin?",
+                        style = AppTypography.HeadingMedium,
+                        color = TextPrimary
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Anda harus memasukkan email admin kembali untuk mengakses dashboard pelayanan kelurahan.",
+                    style = AppTypography.BodyRegular,
+                    color = TextSecondary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogoutClicked()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                ) {
+                    Text(
+                        text = "Ya, Keluar",
+                        style = AppTypography.ButtonText
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showLogoutDialog = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
+                ) {
+                    Text(
+                        text = "Batal",
+                        style = AppTypography.ButtonText.copy(color = TextPrimary)
+                    )
+                }
+            }
+        )
     }
 }
 
