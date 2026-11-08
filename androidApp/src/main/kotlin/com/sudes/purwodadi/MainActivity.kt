@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
+                            // Diperbaiki: Typo patahan baris newline ( \n ) dibersihkan menjadi minus (-)
                             tabHistory.removeAt(tabHistory.size - 1)
                             currentScreen = tabHistory.last()
                         } else {
@@ -102,7 +103,10 @@ class MainActivity : ComponentActivity() {
                             authViewModel = authViewModel,
                             isLoading = isLoading,
                             onGoogleRegisterClicked = {
-                                // 1. NYALAKAN LOADING SEGERA SAAT TOMBOL DIKLIK (Sebelum Credential Manager)
+                                // CEK INSTAN: Jika sudah dalam keadaan loading, abaikan ketukan tambahan
+                                if (authViewModel.isLoading.value) return@RegisterScreen
+
+                                // Nyalakan loading seketika saat tombol Google diklik
                                 authViewModel.setLoading(true)
 
                                 val credentialManager = CredentialManager.create(this@MainActivity)
@@ -129,11 +133,14 @@ class MainActivity : ComponentActivity() {
                                             val googleName = googleIdTokenCredential.displayName ?: "Warga Purwodadi"
                                             val googleEmail = googleIdTokenCredential.id
 
+                                            // Proses login ke Firebase (Loading TETAP AKTIF selama proses ini)
                                             authViewModel.signInWithGoogleCredential(
                                                 idToken = googleIdToken,
                                                 namaLengkap = googleName,
                                                 email = googleEmail,
                                                 onSuccess = {
+                                                    // Matikan loading HANYA KETIKA semuanya benar-benar sukses & pindah halaman
+                                                    authViewModel.setLoading(false)
                                                     currentScreen = "home"
                                                     tabHistory.clear()
                                                     tabHistory.add("home")
@@ -141,13 +148,22 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             )
                                         } else {
+                                            // Jika format kredensial tidak sesuai
                                             authViewModel.setLoading(false)
                                         }
-                                    } catch (e: Exception) {
-                                        // Matikan loading jika user membatalkan dialog / terjadi error
+                                    } catch (e: Throwable) {
+                                        val errorName = e.javaClass.name.lowercase()
+                                        val isCanceled = errorName.contains("cancel") ||
+                                                errorName.contains("abort") ||
+                                                e is kotlinx.coroutines.CancellationException
+
+                                        if (!isCanceled) {
+                                            Toast.makeText(this@MainActivity, "Google Sign-In gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                        }
+                                        // Matikan loading jika terjadi pembatalan atau error
                                         authViewModel.setLoading(false)
-                                        Toast.makeText(this@MainActivity, "Google Sign-In dibatalkan/gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                     }
+                                    // Blok `finally` dihapus dari sini agar loading tidak mati terlalu cepat!
                                 }
                             },
                             onBackToLoginClicked = { currentScreen = "login" }

@@ -42,12 +42,12 @@ class AuthViewModel : ViewModel() {
         }
 
         if (password != konfirmasiPassword) {
-            _errorMessage.value = "Password dan Konfirmasi Password tidak sama!"
+            _errorMessage.value = "Kata Sandi dan Konfirmasi Kata Sandi tidak sama!"
             return
         }
 
         if (password.length < 8) {
-            _errorMessage.value = "Password minimal harus 8 karakter!"
+            _errorMessage.value = "Kata Sandi minimal harus 8 karakter!"
             return
         }
 
@@ -58,31 +58,56 @@ class AuthViewModel : ViewModel() {
         auth.createUserWithEmailAndPassword(email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: ""
+                    val firebaseUser = auth.currentUser
+                    val userId = firebaseUser?.uid ?: ""
 
-                    // 2. Simpan profil tambahan warga ke Cloud Firestore
-                    val userData = hashMapOf(
-                        "uid" to userId,
-                        "namaLengkap" to namaLengkap,
-                        "email" to email,
-                        "nomorHp" to nomorHp,
-                        "role" to "warga",
-                        "createdAt" to com.google.firebase.Timestamp.now()
-                    )
+                    // 2. Kirim Email Verifikasi ke email yang didaftarkan
+                    firebaseUser?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
+                        if (verificationTask.isSuccessful) {
+                            // 3. Simpan profil tambahan warga ke Cloud Firestore
+                            val userData = hashMapOf(
+                                "uid" to userId,
+                                "namaLengkap" to namaLengkap,
+                                "email" to email,
+                                "nomorHp" to nomorHp,
+                                "role" to "warga",
+                                "createdAt" to com.google.firebase.Timestamp.now()
+                            )
 
-                    firestore.collection("users").document(userId)
-                        .set(userData)
-                        .addOnSuccessListener {
+                            firestore.collection("users").document(userId)
+                                .set(userData)
+                                .addOnSuccessListener {
+                                    _isLoading.value = false
+                                    // Logout sementara agar user wajib verifikasi email dulu sebelum login
+                                    auth.signOut()
+                                    onSuccess()
+                                }
+                                .addOnFailureListener { e ->
+                                    _isLoading.value = false
+                                    _errorMessage.value = "Gagal menyimpan data pengguna: ${e.message}"
+                                }
+                        } else {
                             _isLoading.value = false
-                            onSuccess()
+                            _errorMessage.value = "Gagal mengirim email verifikasi: ${verificationTask.exception?.message}"
                         }
-                        .addOnFailureListener { e ->
-                            _isLoading.value = false
-                            _errorMessage.value = "Gagal menyimpan data pengguna: ${e.message}"
-                        }
+                    }
                 } else {
                     _isLoading.value = false
-                    _errorMessage.value = task.exception?.message ?: "Pendaftaran gagal, silakan coba lagi."
+
+                    val rawMessage = task.exception?.message ?: ""
+
+                    _errorMessage.value = when {
+                        rawMessage.contains("email address is already in use", ignoreCase = true) ->
+                            "Email ini sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda."
+                        rawMessage.contains("badly formatted", ignoreCase = true) ->
+                            "Format penulisan email salah atau tidak valid."
+                        rawMessage.contains("weak password", ignoreCase = true) ->
+                            "Kata sandi terlalu lemah. Gunakan minimal 8 karakter."
+                        else ->
+                            "Pendaftaran gagal: $rawMessage"
+                    }
+
+
                 }
             }
     }
@@ -96,6 +121,7 @@ class AuthViewModel : ViewModel() {
         email: String,
         onSuccess: () -> Unit
     ) {
+        // 1. Nyalakan loading seketika
         _isLoading.value = true
         _errorMessage.value = null
 
@@ -103,40 +129,36 @@ class AuthViewModel : ViewModel() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: ""
-                    val userRef = firestore.collection("users").document(userId)
+                    val firebaseUser = auth.currentUser
+                    val userId = firebaseUser?.uid ?: ""
 
-                    // Cek apakah data user sudah ada di Firestore, jika belum buat dokumen baru
-                    userRef.get().addOnSuccessListener { document ->
-                        if (!document.exists()) {
-                            val userData = hashMapOf(
-                                "uid" to userId,
-                                "namaLengkap" to namaLengkap,
-                                "email" to email,
-                                "nomorHp" to "", // Google Sign-In tidak membawa nomor HP secara otomatis
-                                "role" to "warga",
-                                "createdAt" to com.google.firebase.Timestamp.now()
-                            )
-                            userRef.set(userData)
-                                .addOnSuccessListener {
-                                    _isLoading.value = false
-                                    onSuccess()
-                                }
-                                .addOnFailureListener { e ->
-                                    _isLoading.value = false
-                                    _errorMessage.value = "Gagal menyimpan data Google ke Firestore: ${e.message}"
-                                }
-                        } else {
+                    // Simpan atau perbarui data profil warga ke Cloud Firestore
+                    val userData = hashMapOf(
+                        "uid" to userId,
+                        "namaLengkap" to namaLengkap,
+                        "email" to email,
+                        "role" to "warga",
+                        "createdAt" to com.google.firebase.Timestamp.now()
+                    )
+
+                    firestore.collection("users").document(userId)
+                        .set(userData, com.google.firebase.firestore.SetOptions.merge())
+                        .addOnCompleteListener { _ ->
+                            // 2. Matikan loading setelah data Firestore selesai disimpan
                             _isLoading.value = false
                             onSuccess()
                         }
-                    }.addOnFailureListener { e ->
-                        _isLoading.value = false
-                        _errorMessage.value = "Gagal memeriksa data user: ${e.message}"
-                    }
                 } else {
+                    // 3. Matikan loading dan tangkap pesan error jika Firebase gagal
                     _isLoading.value = false
-                    _errorMessage.value = task.exception?.message ?: "Autentikasi Google gagal."
+                    val rawMessage = task.exception?.message ?: "Terjadi kesalahan sistem"
+
+                    _errorMessage.value = when {
+                        rawMessage.contains("network", ignoreCase = true) ->
+                            "Koneksi internet bermasalah. Periksa kembali sambungan Anda."
+                        else ->
+                            "Autentikasi Google gagal: $rawMessage"
+                    }
                 }
             }
     }
