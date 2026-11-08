@@ -1,0 +1,344 @@
+package com.sudes.purwodadi
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.sudes.purwodadi.ui.theme.*
+
+data class AdminPengajuanItem(
+    val id: String,
+    val jenisSurat: String,
+    val namaPemohon: String,
+    val tanggal: String,
+    val status: StatusPengajuan,
+    val pesanStatus: String
+)
+
+@Composable
+fun AdminDashboardScreen(
+    onDetailClicked: (String) -> Unit = {},
+    onSelesaikanClicked: (String) -> Unit = {}
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf("Semua") }
+
+    val scrollState = rememberScrollState()
+    val filterScrollState = rememberScrollState()
+
+    // Data tiruan pengajuan surat untuk panel admin
+    val listPengajuan = remember {
+        mutableStateListOf(
+            AdminPengajuanItem(
+                id = "1",
+                jenisSurat = "Surat Keterangan Domisili",
+                namaPemohon = "Sahal Alfarizi",
+                tanggal = "03 Nov 2026, 09.15",
+                status = StatusPengajuan.PROSES,
+                pesanStatus = "Sedang diverifikasi oleh Perangkat Desa"
+            ),
+            AdminPengajuanItem(
+                id = "2",
+                jenisSurat = "Surat Keterangan Usaha",
+                namaPemohon = "Roy Pratama",
+                tanggal = "01 Nov 2026, 14.20",
+                status = StatusPengajuan.DITERIMA,
+                pesanStatus = "Surat dapat diambil di Balai Desa"
+            ),
+            AdminPengajuanItem(
+                id = "3",
+                jenisSurat = "Surat Keterangan Tidak Mampu",
+                namaPemohon = "Syahrul Rek",
+                tanggal = "29 Okt 2026, 11.00",
+                status = StatusPengajuan.DITOLAK,
+                pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
+            )
+        )
+    }
+
+    // Logika Filter & Pencarian Admin
+    val filteredList = listPengajuan.filter { item ->
+        val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
+                item.namaPemohon.contains(searchQuery, ignoreCase = true)
+        val matchFilter = when (selectedFilter) {
+            "Proses" -> item.status == StatusPengajuan.PROSES
+            "Diterima" -> item.status == StatusPengajuan.DITERIMA
+            "Ditolak" -> item.status == StatusPengajuan.DITOLAK
+            else -> true
+        }
+        matchSearch && matchFilter
+    }
+
+    Scaffold(
+        containerColor = GrayBackground
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+        ) {
+            // HEADER ATAS HIJAU KHUSUS ADMIN
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GreenDesaPrimary)
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Dashboard Pelayanan",
+                            style = AppTypography.HeadingLarge.copy(color = Color.White)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "SUDES",
+                            style = AppTypography.Caption.copy(
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            text = "Admin",
+                            style = AppTypography.Caption.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            ),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // KOLOM PENCARIAN
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = {
+                        Text(
+                            "Cari nama pemohon atau jenis surat",
+                            color = TextPlaceholder,
+                            style = AppTypography.BodyRegular
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Cari",
+                            tint = TextSecondary
+                        )
+                    },
+                    textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        unfocusedBorderColor = GrayBorder,
+                        focusedBorderColor = GreenDesaPrimary,
+                        cursorColor = GreenDesaPrimary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(filterScrollState),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AdminFilterChipItem(
+                        text = "Semua (${listPengajuan.size})",
+                        isSelected = selectedFilter == "Semua",
+                        onClick = { selectedFilter = "Semua" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Proses (${listPengajuan.count { it.status == StatusPengajuan.PROSES }})",
+                        isSelected = selectedFilter == "Proses",
+                        onClick = { selectedFilter = "Proses" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Diterima (${listPengajuan.count { it.status == StatusPengajuan.DITERIMA }})",
+                        isSelected = selectedFilter == "Diterima",
+                        onClick = { selectedFilter = "Diterima" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Ditolak (${listPengajuan.count { it.status == StatusPengajuan.DITOLAK }})",
+                        isSelected = selectedFilter == "Ditolak",
+                        onClick = { selectedFilter = "Ditolak" }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // DAFTAR KARTU PENGAJUAN ADMIN
+                filteredList.forEach { item ->
+                    AdminPengajuanCard(
+                        item = item,
+                        onSelesaikanClicked = { onSelesaikanClicked(item.id) },
+                        onDetailClicked = { onDetailClicked(item.jenisSurat) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AdminFilterChipItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) GreenDesaPrimary else Color.White,
+        border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
+        modifier = Modifier.height(38.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = AppTypography.Caption.copy(fontWeight = FontWeight.Medium),
+                color = if (isSelected) Color.White else TextPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun AdminPengajuanCard(
+    item: AdminPengajuanItem,
+    onSelesaikanClicked: () -> Unit,
+    onDetailClicked: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StatusBadge(status = item.status)
+                Text(
+                    text = item.tanggal,
+                    style = AppTypography.Caption,
+                    color = TextSecondary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = item.jenisSurat,
+                style = AppTypography.HeadingMedium,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "Nama Pemohon: ${item.namaPemohon}",
+                style = AppTypography.BodyRegular,
+                color = TextSecondary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val containerColor = when (item.status) {
+                StatusPengajuan.PROSES -> OrangeProcessContainer
+                StatusPengajuan.DITERIMA -> GreenDesaLight
+                StatusPengajuan.DITOLAK -> RedRejectedContainer
+            }
+            val textColor = when (item.status) {
+                StatusPengajuan.PROSES -> OrangeProcessText
+                StatusPengajuan.DITERIMA -> GreenDesaPrimary
+                StatusPengajuan.DITOLAK -> RedRejectedText
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = containerColor
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    if (item.status == StatusPengajuan.DITOLAK) {
+                        Text(
+                            text = "Alasan Penolakan Admin:",
+                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                    Text(
+                        text = item.pesanStatus,
+                        style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
+                        color = textColor
+                    )
+                }
+            }
+
+            // Tombol "Selesaikan" khusus untuk kartu yang berstatus PROSES
+            if (item.status == StatusPengajuan.PROSES) {
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        onClick = onSelesaikanClicked,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Selesaikan",
+                            style = AppTypography.Caption.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

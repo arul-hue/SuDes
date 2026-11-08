@@ -72,10 +72,16 @@ class MainActivity : ComponentActivity() {
                     }
                     "login" -> {
                         LoginScreen(
-                            onLoginClicked = { _, _ ->
-                                currentScreen = "home"
+                            onLoginClicked = { email, _ ->
+                                // Validasi role berdasarkan email
+                                if (email.equals("admin@purwodadi.desa.id", ignoreCase = true) ||
+                                    email.contains("admin", ignoreCase = true)) {
+                                    currentScreen = "admin_dashboard"
+                                } else {
+                                    currentScreen = "home"
+                                }
                                 tabHistory.clear()
-                                tabHistory.add("home")
+                                tabHistory.add(currentScreen)
                             },
                             onGoogleLoginClicked = {
                                 currentScreen = "home"
@@ -101,6 +107,23 @@ class MainActivity : ComponentActivity() {
                         ForgotPasswordScreen(
                             onSubmitEmailClicked = { _ -> currentScreen = "login" },
                             onBackToLoginClicked = { currentScreen = "login" }
+                        )
+                    }
+                    "admin_dashboard" -> {
+                        AdminDashboardScreen(
+                            onDetailClicked = { jenisSurat ->
+                                // Opsional
+                            },
+                            onSelesaikanClicked = { idPengajuan ->
+                                // Ketika tombol Selesai diklik, buka laman edit/koreksi admin
+                                currentScreen = "admin_edit_pengajuan"
+                            }
+                        )
+                    }
+                    "admin_edit_pengajuan" -> {
+                        AdminEditPengajuanScreen(
+                            onBackClicked = { currentScreen = "admin_dashboard" },
+                            onSaveSuccess = { currentScreen = "admin_dashboard" }
                         )
                     }
                     "home" -> {
