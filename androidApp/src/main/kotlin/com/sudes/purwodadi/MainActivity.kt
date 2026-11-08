@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1)
+                            tabHistory.removeAt(tabHistory.size - 1) // Ada tanda minus (-)
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -88,18 +88,25 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             },
-                            onLoginSuccess = {
-                                currentScreen = "home"
-                                tabHistory.clear()
-                                tabHistory.add("home")
-                                Toast.makeText(context, "Berhasil masuk!", Toast.LENGTH_SHORT).show()
+                            onLoginSuccess = { role ->
+                                // Tangkap role, bersihkan spasi, dan ubah ke huruf kecil
+                                val cleanedRole = role.trim().lowercase()
+                                if (cleanedRole == "admin") {
+                                    currentScreen = "admin_dashboard"
+                                    Toast.makeText(context, "Berhasil masuk sebagai Admin!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    currentScreen = "home"
+                                    tabHistory.clear()
+                                    tabHistory.add("home")
+                                    Toast.makeText(context, "Berhasil masuk!", Toast.LENGTH_SHORT).show()
+                                }
                             },
                             onRegisterClicked = {
-                                authViewModel.clearError() // Bersihkan error saat pindah ke register
+                                authViewModel.clearError()
                                 currentScreen = "register"
                             },
                             onForgotPasswordClicked = {
-                                authViewModel.clearError() // Bersihkan error saat pindah ke lupa password
+                                authViewModel.clearError()
                                 currentScreen = "forgot_password"
                             }
                         )

@@ -118,19 +118,18 @@ class AuthViewModel : ViewModel() {
     }
 
     /**
-     * Fungsi login manual melalui Form (Email & Password) yang stabil & aman
+     * Fungsi login manual yang mengambil data role dari Firestore
      */
     fun loginUser(
         email: String,
         password: String,
-        onSuccess: () -> Unit
+        onSuccess: (String) -> Unit // Menerima parameter role (String)
     ) {
         if (email.isBlank() || password.isBlank()) {
             _errorMessage.value = "Email dan kata sandi wajib diisi!"
             return
         }
 
-        // 1. Validasi format email lokal
         if (!Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
             _errorMessage.value = "Format penulisan email salah atau tidak valid."
             return
@@ -139,16 +138,36 @@ class AuthViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
 
-        // 2. Proses masuk standar Firebase yang stabil untuk akun terdaftar
         auth.signInWithEmailAndPassword(email.trim(), password)
             .addOnCompleteListener { task ->
-                _isLoading.value = false
                 if (task.isSuccessful) {
-                    onSuccess()
+                    val userId = auth.currentUser?.uid
+                    android.util.Log.d("DEBUG_LOGIN", "UID yang sedang login: $userId")
+
+                    if (userId != null) {
+                        // Ambil role dari Firestore berdasarkan UID user yang login
+                        firestore.collection("users").document(userId).get()
+                            .addOnSuccessListener { document ->
+                                _isLoading.value = false
+                                android.util.Log.d("DEBUG_LOGIN", "Apakah dokumen ada? ${document.exists()}")
+                                android.util.Log.d("DEBUG_LOGIN", "Role tertulis di Firestore: ${document.getString("role")}")
+
+                                val role = document.getString("role") ?: "user"
+                                onSuccess(role) // Kirim role ke MainActivity
+                            }
+                            .addOnFailureListener { e ->
+                                _isLoading.value = false
+                                android.util.Log.e("DEBUG_LOGIN", "Gagal ambil Firestore: ${e.message}")
+                                _errorMessage.value = "Gagal memuat data role: ${e.message}"
+                            }
+                    } else {
+                        _isLoading.value = false
+                        _errorMessage.value = "Sesi pengguna tidak valid."
+                    }
                 } else {
+                    _isLoading.value = false
                     val rawMessage = task.exception?.message ?: ""
 
-                    // Pesan umum yang aman dan tidak membuat akun valid gagal masuk
                     _errorMessage.value = when {
                         rawMessage.contains("password", ignoreCase = true) ||
                                 rawMessage.contains("credential", ignoreCase = true) ||

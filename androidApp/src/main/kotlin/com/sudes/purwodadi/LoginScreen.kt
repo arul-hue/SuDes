@@ -35,7 +35,7 @@ fun LoginScreen(
     authViewModel: AuthViewModel = remember { AuthViewModel() },
     isLoading: Boolean = false,
     onGoogleLoginClicked: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {},
+    onLoginSuccess: (String) -> Unit = {},
     onForgotPasswordClicked: () -> Unit = {},
     onRegisterClicked: () -> Unit = {}
 ) {
@@ -323,8 +323,8 @@ fun LoginScreen(
                                 authViewModel.loginUser(
                                     email = email,
                                     password = password,
-                                    onSuccess = {
-                                        onLoginSuccess()
+                                    onSuccess = { role -> // <--- Tangkap role dari ViewModel
+                                        onLoginSuccess(role) // <--- Teruskan role ke MainActivity
                                     }
                                 )
                             },
