@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextAlign
 import java.time.LocalDate
@@ -55,6 +56,24 @@ fun SuratTidakMampuScreen(
     var isSubmittedSuccess by remember { mutableStateOf(false) }       // Untuk dialog pop-up sukses
 
     val scrollState = rememberScrollState()
+
+    BackHandler {
+        when {
+            isSubmittedSuccess -> {
+                // Jika pop-up sukses sedang terbuka, tutup dan kembali ke Beranda
+                isSubmittedSuccess = false
+                onSubmitSuccess()
+            }
+            showConfirmDialog -> {
+                // Jika dialog konfirmasi sedang terbuka, tutup dialognya saja
+                showConfirmDialog = false
+            }
+            else -> {
+                // Jika di halaman form biasa, kembali ke halaman sebelumnya (Beranda)
+                onBackClicked()
+            }
+        }
+    }
 
     // TAMPILAN FORM UTAMA
     Scaffold(
