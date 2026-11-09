@@ -1,14 +1,14 @@
 package com.sudes.purwodadi
 
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.text.style.TextAlign
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,14 +20,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-// Fungsi helper unik untuk tanggal hari ini pada Surat Keterangan Tidak Mampu
 fun getSktmDateFormatted(): String {
-    val currentDate = LocalDate.now()
-    val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("id", "ID"))
-    return currentDate.format(formatter)
+    val formatter = SimpleDateFormat("dd MMMM yyyy", Locale.forLanguageTag("id-ID"))
+    return formatter.format(Date())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +39,10 @@ fun SuratTidakMampuScreen(
     onBackClicked: () -> Unit = {},
     onSubmitSuccess: () -> Unit = {}
 ) {
-    // State Data Diri
+    val context = LocalContext.current
+    val suratViewModel = remember { SuratViewModel() }
+    val isLoading by suratViewModel.isLoading.collectAsState()
+
     var namaLengkap by remember { mutableStateOf("") }
     var nik by remember { mutableStateOf("") }
     var tempatTanggalLahir by remember { mutableStateOf("") }
@@ -46,36 +52,37 @@ fun SuratTidakMampuScreen(
     var pekerjaan by remember { mutableStateOf("") }
     var alamatLengkap by remember { mutableStateOf("") }
 
-    // State Detail Keluarga & Keperluan
     var nomorKK by remember { mutableStateOf("") }
     var namaKepalaKeluarga by remember { mutableStateOf("") }
     var keperluanSurat by remember { mutableStateOf("") }
 
-    // State Dialog Konfirmasi & Sukses
-    var showConfirmDialog by remember { mutableStateOf(false) } // Untuk dialog "Yakin ingin kirim?"
-    var isSubmittedSuccess by remember { mutableStateOf(false) }       // Untuk dialog pop-up sukses
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var isSubmittedSuccess by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
     BackHandler {
         when {
             isSubmittedSuccess -> {
-                // Jika pop-up sukses sedang terbuka, tutup dan kembali ke Beranda
                 isSubmittedSuccess = false
                 onSubmitSuccess()
             }
             showConfirmDialog -> {
-                // Jika dialog konfirmasi sedang terbuka, tutup dialognya saja
                 showConfirmDialog = false
             }
             else -> {
-                // Jika di halaman form biasa, kembali ke halaman sebelumnya (Beranda)
                 onBackClicked()
             }
         }
     }
 
-    // TAMPILAN FORM UTAMA
     Scaffold(
         topBar = {
             Surface(
@@ -115,8 +122,24 @@ fun SuratTidakMampuScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
-            // TOMBOL ISI OTOMATIS
             Surface(
+                onClick = {
+                    suratViewModel.ambilDataProfilWarga(
+                        onResult = { data ->
+                            namaLengkap = (data["namaLengkap"] as? String)?.takeIf { it != "-" } ?: ""
+                            nik = (data["nik"] as? String)?.takeIf { it != "-" } ?: ""
+                            tempatTanggalLahir = (data["tempatTanggalLahir"] as? String)?.takeIf { it != "-" } ?: ""
+                            agama = (data["agama"] as? String)?.takeIf { it != "-" } ?: ""
+                            statusPerkawinan = (data["statusPerkawinan"] as? String)?.takeIf { it != "-" } ?: ""
+                            pekerjaan = (data["pekerjaan"] as? String)?.takeIf { it != "-" } ?: ""
+                            alamatLengkap = (data["alamatLengkap"] as? String)?.takeIf { it != "-" } ?: ""
+                            Toast.makeText(context, "Data profil berhasil diisi otomatis!", Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { pesanError ->
+                            Toast.makeText(context, pesanError, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 color = GreenDesaLight,
@@ -131,7 +154,7 @@ fun SuratTidakMampuScreen(
                 ) {
                     Text(text = "⚡  ", style = AppTypography.HeadingMedium)
                     Text(
-                        text = "Isi Otomatis dari Profil",
+                        text = if (isLoading) "Memuat Data Profil..." else "Isi Otomatis dari Profil",
                         style = AppTypography.LabelForm.copy(color = GreenDesaPrimary)
                     )
                 }
@@ -139,17 +162,35 @@ fun SuratTidakMampuScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 1: DATA DIRI
             SktmCardSection(title = "DATA DIRI") {
                 SktmFormTextField(label = "Nama Lengkap", value = namaLengkap, onValueChange = { namaLengkap = it }, placeholder = "Masukkan nama lengkap")
                 SktmFormTextField(label = "NIK", value = nik, onValueChange = { nik = it }, placeholder = "Masukkan 16 digit NIK")
                 SktmFormTextField(label = "Tempat, Tanggal Lahir", value = tempatTanggalLahir, onValueChange = { tempatTanggalLahir = it }, placeholder = "Contoh: Bandar Lampung, 01 Januari 1990")
-                SktmFormDropdownField(label = "Jenis Kelamin", selectedValue = jenisKelamin.ifEmpty { "Pilih jenis kelamin" })
-                SktmFormDropdownField(label = "Agama", selectedValue = agama.ifEmpty { "Pilih agama" })
-                SktmFormDropdownField(label = "Status Perkawinan", selectedValue = statusPerkawinan.ifEmpty { "Pilih status perkawinan" })
+
+                SktmFormDropdownField(
+                    label = "Jenis Kelamin",
+                    selectedValue = jenisKelamin,
+                    placeholder = "Pilih jenis kelamin",
+                    options = listOf("Laki-laki", "Perempuan"),
+                    onOptionSelected = { jenisKelamin = it }
+                )
+                SktmFormDropdownField(
+                    label = "Agama",
+                    selectedValue = agama,
+                    placeholder = "Pilih agama",
+                    options = listOf("Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu"),
+                    onOptionSelected = { agama = it }
+                )
+                SktmFormDropdownField(
+                    label = "Status Perkawinan",
+                    selectedValue = statusPerkawinan,
+                    placeholder = "Pilih status perkawinan",
+                    options = listOf("Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"),
+                    onOptionSelected = { statusPerkawinan = it }
+                )
+
                 SktmFormTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it }, placeholder = "Masukkan pekerjaan")
 
-                // 👉 ALAMAT LENGKAP (Multi-line 3-4 baris)
                 SktmFormTextField(
                     label = "Alamat Lengkap",
                     value = alamatLengkap,
@@ -163,12 +204,10 @@ fun SuratTidakMampuScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 2: DETAIL KELUARGA & KEPERLUAN
             SktmCardSection(title = "DETAIL KELUARGA & KEPERLUAN") {
                 SktmFormTextField(label = "Nomor Kartu Keluarga (KK)", value = nomorKK, onValueChange = { nomorKK = it }, placeholder = "Masukkan nomor KK")
                 SktmFormTextField(label = "Nama Kepala Keluarga (di KK)", value = namaKepalaKeluarga, onValueChange = { namaKepalaKeluarga = it }, placeholder = "Contoh: Budi Santoso")
 
-                // 👉 KEPERLUAN PEMBUATAN SURAT (Multi-line 2-3 baris)
                 SktmFormTextField(
                     label = "Keperluan Pembuatan Surat",
                     value = keperluanSurat,
@@ -182,25 +221,33 @@ fun SuratTidakMampuScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 3: SURAT PENGANTAR RT
             SktmCardSection(title = "SURAT PENGANTAR RT") {
                 OutlinedButton(
-                    onClick = { /* Aksi Upload File */ },
+                    onClick = { imagePickerLauncher.launch("image/*") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = GrayBackground)
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (selectedImageUri != null) GreenDesaLight else GrayBackground
+                    )
                 ) {
-                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Upload", tint = TextSecondary)
+                    Icon(
+                        imageVector = if (selectedImageUri != null) Icons.Default.Check else Icons.Default.AttachFile,
+                        contentDescription = "Upload",
+                        tint = if (selectedImageUri != null) GreenDesaPrimary else TextSecondary
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Unggah Foto/Scan Surat Pengantar RT", color = TextSecondary, style = AppTypography.BodyRegular)
+                    Text(
+                        text = if (selectedImageUri != null) "Foto Pengantar RT Siap Diunggah" else "Unggah Foto/Scan Surat Pengantar RT",
+                        color = if (selectedImageUri != null) GreenDesaPrimary else TextSecondary,
+                        style = AppTypography.BodyRegular
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 4: INFORMASI SURAT
             SktmCardSection(title = "INFORMASI SURAT") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -225,7 +272,6 @@ fun SuratTidakMampuScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TOMBOL KIRIM PENGAJUAN
             Button(
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
@@ -241,7 +287,6 @@ fun SuratTidakMampuScreen(
         }
     }
 
-    // 1. POP-UP DIALOG KONFIRMASI ("Kirim Pengajuan Surat?")
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -265,14 +310,42 @@ fun SuratTidakMampuScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = {
-                            showConfirmDialog = false
-                            isSubmittedSuccess = true // Lanjut memunculkan pop-up sukses
+                            suratViewModel.kirimPengajuanSurat(
+                                jenisSurat = "Surat Keterangan Tidak Mampu",
+                                tanggalPengajuan = getSktmDateFormatted(),
+                                namaLengkap = namaLengkap,
+                                nik = nik,
+                                tempatTanggalLahir = tempatTanggalLahir,
+                                jenisKelamin = jenisKelamin,
+                                agama = agama,
+                                statusPerkawinan = statusPerkawinan,
+                                pekerjaan = pekerjaan,
+                                alamatLengkap = alamatLengkap,
+                                keperluanSurat = keperluanSurat,
+                                lampiranPengantarRt = selectedImageUri?.toString() ?: "pengantar_rt.jpg",
+                                dataTambahan = mapOf(
+                                    "nomorKK" to nomorKK,
+                                    "namaKepalaKeluarga" to namaKepalaKeluarga
+                                ),
+                                onSuccess = {
+                                    showConfirmDialog = false
+                                    isSubmittedSuccess = true
+                                },
+                                onError = { pesanError ->
+                                    showConfirmDialog = false
+                                    Toast.makeText(context, pesanError, Toast.LENGTH_LONG).show()
+                                }
+                            )
                         },
+                        enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
                     ) {
-                        Text(text = "Ya, Kirim Sekarang", style = AppTypography.ButtonText)
+                        Text(
+                            text = if (isLoading) "Mengirim..." else "Ya, Kirim Sekarang",
+                            style = AppTypography.ButtonText
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -290,7 +363,6 @@ fun SuratTidakMampuScreen(
         )
     }
 
-    // 2. POP-UP DIALOG SUKSES ("Pengajuan Berhasil!")
     if (isSubmittedSuccess) {
         AlertDialog(
             onDismissRequest = { },
@@ -315,7 +387,7 @@ fun SuratTidakMampuScreen(
                 Button(
                     onClick = {
                         isSubmittedSuccess = false
-                        onSubmitSuccess() // Kembali ke Beranda / halaman sebelumnya
+                        onSubmitSuccess()
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(12.dp),
@@ -328,7 +400,6 @@ fun SuratTidakMampuScreen(
     }
 }
 
-// Komponen Pendukung Card Section
 @Composable
 fun SktmCardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Surface(
@@ -353,14 +424,13 @@ fun SktmCardSection(title: String, content: @Composable ColumnScope.() -> Unit) 
     }
 }
 
-// Komponen Input TextField yang Mendukung Multi-line
 @Composable
 fun SktmFormTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    singleLine: Boolean = true, // Default true untuk field biasa
+    singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = 1
 ) {
@@ -390,28 +460,57 @@ fun SktmFormTextField(
     }
 }
 
-// Komponen Dropdown Simulasi dengan ukuran font ramah lansia
 @Composable
-fun SktmFormDropdownField(label: String, selectedValue: String) {
+fun SktmFormDropdownField(
+    label: String,
+    selectedValue: String,
+    placeholder: String = "",
+    options: List<String> = emptyList(),
+    onOptionSelected: (String) -> Unit = {}
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
         Text(text = label, style = AppTypography.LabelForm, color = TextPrimary)
         Spacer(modifier = Modifier.height(6.dp))
-        OutlinedButton(
-            onClick = { /* Aksi Buka Pilihan Dropdown */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(10.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { if (options.isNotEmpty()) expanded = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
             ) {
-                Text(text = selectedValue, color = TextPlaceholder, style = AppTypography.BodyRegular)
-                Text(text = "▼", color = TextSecondary, style = AppTypography.Caption)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = selectedValue.ifEmpty { placeholder },
+                        color = if (selectedValue.isEmpty()) TextPlaceholder else TextPrimary,
+                        style = AppTypography.BodyRegular
+                    )
+                    Text(text = "▼", color = TextSecondary, style = AppTypography.Caption)
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color.White)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(text = option, style = AppTypography.BodyRegular, color = TextPrimary) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
