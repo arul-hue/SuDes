@@ -17,64 +17,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
-data class PengajuanItem(
-    val jenisSurat: String,
-    val namaPemohon: String,
-    val tanggal: String,
-    val status: StatusPengajuan,
-    val pesanStatus: String
-)
-
-enum class StatusPengajuan {
-    PROSES, DITERIMA, DITOLAK
-}
+// Menggunakan model PengajuanSurat yang sudah ada di SuratViewModel.kt
+// (Pastikan enum StatusPengajuan dicocokkan atau dikonversi ke String dari Firestore)
 
 @Composable
 fun StatusScreen(
     onTabSelected: (Int) -> Unit = {},
     onDetailClicked: (String) -> Unit = {},
-    onResubmitClicked: (String) -> Unit = {} // Callback baru untuk ajukan ulang dari StatusScreen
+    onResubmitClicked: (String) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(1) } // Tab Status aktif di indeks 1
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Semua") }
 
     val scrollState = rememberScrollState()
-    val filterScrollState = rememberScrollState() // State khusus untuk scroll horizontal filter
+    val filterScrollState = rememberScrollState()
 
-    // Data tiruan pengajuan surat
-    val listPengajuan = listOf(
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Domisili",
-            namaPemohon = "Sahal Aw",
-            tanggal = "03 Nov 2026, 09.15",
-            status = StatusPengajuan.PROSES,
-            pesanStatus = "Berkas dicek perangkat desa"
-        ),
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Usaha",
-            namaPemohon = "Roy UX",
-            tanggal = "01 Nov 2026, 14.20",
-            status = StatusPengajuan.DITERIMA,
-            pesanStatus = "Surat dapat diambil di Balai Desa"
-        ),
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Tidak Mampu",
-            namaPemohon = "Syahrul Rek",
-            tanggal = "29 Okt 2026, 11.00",
-            status = StatusPengajuan.DITOLAK,
-            pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
-        )
-    )
+    // Hubungkan ke SuratViewModel untuk mengambil data real-time dari Firestore
+    val suratViewModel = remember { SuratViewModel() }
+    val listPengajuan by suratViewModel.daftarSuratWarga.collectAsState()
+    val isLoading by suratViewModel.isLoading.collectAsState()
 
-    // Logika Filter & Pencarian
+    // Panggil fungsi muat riwayat saat pertama kali layar dibuka
+    LaunchedEffect(Unit) {
+        suratViewModel.muatRiwayatSuratWarga()
+    }
+
+    // Hitung jumlah untuk chip filter berdasarkan data asli Firestore
+    val totalCount = listPengajuan.size
+    val prosesCount = listPengajuan.count { it.status.equals("Proses", ignoreCase = true) }
+    val diterimaCount = listPengajuan.count { it.status.equals("Diterima", ignoreCase = true) }
+    val ditolakCount = listPengajuan.count { it.status.equals("Ditolak", ignoreCase = true) }
+
+    // Logika Filter & Pencarian berdasarkan data Firestore
     val filteredList = listPengajuan.filter { item ->
         val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
-                item.namaPemohon.contains(searchQuery, ignoreCase = true)
+                item.namaLengkap.contains(searchQuery, ignoreCase = true)
         val matchFilter = when (selectedFilter) {
-            "Proses" -> item.status == StatusPengajuan.PROSES
-            "Diterima" -> item.status == StatusPengajuan.DITERIMA
-            "Ditolak" -> item.status == StatusPengajuan.DITOLAK
+            "Proses" -> item.status.equals("Proses", ignoreCase = true)
+            "Diterima" -> item.status.equals("Diterima", ignoreCase = true)
+            "Ditolak" -> item.status.equals("Ditolak", ignoreCase = true)
             else -> true
         }
         matchSearch && matchFilter
@@ -92,7 +74,7 @@ fun StatusScreen(
                     selected = selectedTab == 0,
                     onClick = {
                         selectedTab = 0
-                        onTabSelected(0) // Melapor ke MainActivity untuk pindah ke Beranda
+                        onTabSelected(0)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -108,7 +90,7 @@ fun StatusScreen(
                     selected = selectedTab == 1,
                     onClick = {
                         selectedTab = 1
-                        onTabSelected(1) // Melapor ke MainActivity
+                        onTabSelected(1)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -124,7 +106,7 @@ fun StatusScreen(
                     selected = selectedTab == 2,
                     onClick = {
                         selectedTab = 2
-                        onTabSelected(2) // Melapor ke MainActivity untuk pindah ke Profil
+                        onTabSelected(2)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -190,30 +172,30 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
+                // FILTER CHIPS ROW DENGAN DINAMIS COUNTER
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(filterScrollState), // Mengaktifkan geser menyamping
+                        .horizontalScroll(filterScrollState),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChipItem(
-                        text = "Semua (3)",
+                        text = "Semua ($totalCount)",
                         isSelected = selectedFilter == "Semua",
                         onClick = { selectedFilter = "Semua" }
                     )
                     FilterChipItem(
-                        text = "Proses (1)",
+                        text = "Proses ($prosesCount)",
                         isSelected = selectedFilter == "Proses",
                         onClick = { selectedFilter = "Proses" }
                     )
                     FilterChipItem(
-                        text = "Diterima (1)",
+                        text = "Diterima ($diterimaCount)",
                         isSelected = selectedFilter == "Diterima",
                         onClick = { selectedFilter = "Diterima" }
                     )
                     FilterChipItem(
-                        text = "Ditolak (1)",
+                        text = "Ditolak ($ditolakCount)",
                         isSelected = selectedFilter == "Ditolak",
                         onClick = { selectedFilter = "Ditolak" }
                     )
@@ -221,14 +203,39 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // DAFTAR KARTU PENGAJUAN
-                filteredList.forEach { item ->
-                    PengajuanCard(
-                        item = item,
-                        onDetailClicked = { onDetailClicked(item.jenisSurat) },
-                        onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                // KONDISI LOADING ATAU KOSONG
+                if (isLoading && listPengajuan.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = GreenDesaPrimary)
+                    }
+                } else if (filteredList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Belum ada riwayat pengajuan surat.",
+                            style = AppTypography.BodyRegular,
+                            color = TextSecondary
+                        )
+                    }
+                } else {
+                    // DAFTAR KARTU PENGAJUAN DARI FIRESTORE
+                    filteredList.forEach { item ->
+                        PengajuanFirestoreCard(
+                            item = item,
+                            onDetailClicked = { onDetailClicked(item.jenisSurat) },
+                            onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
@@ -258,8 +265,8 @@ fun FilterChipItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun PengajuanCard(
-    item: PengajuanItem,
+fun PengajuanFirestoreCard(
+    item: PengajuanSurat,
     onDetailClicked: () -> Unit,
     onResubmitClicked: () -> Unit
 ) {
@@ -279,9 +286,9 @@ fun PengajuanCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                StatusBadge(status = item.status)
+                StatusFirestoreBadge(status = item.status)
                 Text(
-                    text = item.tanggal,
+                    text = item.tanggalPengajuan,
                     style = AppTypography.Caption,
                     color = TextSecondary
                 )
@@ -296,22 +303,31 @@ fun PengajuanCard(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Nama Pemohon: ${item.namaPemohon}",
+                text = "Nama Pemohon: ${item.namaLengkap}",
                 style = AppTypography.BodyRegular,
                 color = TextSecondary
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            val containerColor = when(item.status) {
-                StatusPengajuan.PROSES -> OrangeProcessContainer
-                StatusPengajuan.DITERIMA -> GreenDesaLight
-                StatusPengajuan.DITOLAK -> RedRejectedContainer
+            val isProses = item.status.equals("Proses", ignoreCase = true)
+            val isDiterima = item.status.equals("Diterima", ignoreCase = true)
+
+            val containerColor = when {
+                isProses -> OrangeProcessContainer
+                isDiterima -> GreenDesaLight
+                else -> RedRejectedContainer
             }
-            val textColor = when(item.status) {
-                StatusPengajuan.PROSES -> OrangeProcessText
-                StatusPengajuan.DITERIMA -> GreenDesaPrimary
-                StatusPengajuan.DITOLAK -> RedRejectedText
+            val textColor = when {
+                isProses -> OrangeProcessText
+                isDiterima -> GreenDesaPrimary
+                else -> RedRejectedText
+            }
+
+            val pesanTampil = when {
+                isProses -> "Berkas sedang dicek perangkat desa"
+                isDiterima -> "Surat dapat diambil di Balai Desa. No. Surat: ${item.nomorSurat}"
+                else -> item.alasanPenolakan.ifEmpty { "Pengajuan ditolak. Mohon unggah ulang dokumen." }
             }
 
             Surface(
@@ -320,7 +336,7 @@ fun PengajuanCard(
                 color = containerColor
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    if (item.status == StatusPengajuan.DITOLAK) {
+                    if (!isProses && !isDiterima) {
                         Text(
                             text = "Alasan Penolakan Admin:",
                             style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
@@ -329,7 +345,7 @@ fun PengajuanCard(
                         Spacer(modifier = Modifier.height(2.dp))
                     }
                     Text(
-                        text = item.pesanStatus,
+                        text = pesanTampil,
                         style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
                         color = textColor
                     )
@@ -338,8 +354,7 @@ fun PengajuanCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Jika status ditolak, tampilkan Tombol Ajukan Ulang & Lihat Detail
-            if (item.status == StatusPengajuan.DITOLAK) {
+            if (!isProses && !isDiterima) {
                 Button(
                     onClick = onResubmitClicked,
                     modifier = Modifier
@@ -379,11 +394,11 @@ fun PengajuanCard(
 }
 
 @Composable
-fun StatusBadge(status: StatusPengajuan) {
-    val (bgColor, textColor, text) = when(status) {
-        StatusPengajuan.PROSES -> Triple(OrangeProcessContainer, OrangeProcessText, "• Diproses")
-        StatusPengajuan.DITERIMA -> Triple(GreenDesaLight, GreenDesaPrimary, "✓ Diterima")
-        StatusPengajuan.DITOLAK -> Triple(RedRejectedContainer, RedRejectedText, "✕ Ditolak")
+fun StatusFirestoreBadge(status: String) {
+    val (bgColor, textColor, text) = when {
+        status.equals("Proses", ignoreCase = true) -> Triple(OrangeProcessContainer, OrangeProcessText, "• Diproses")
+        status.equals("Diterima", ignoreCase = true) -> Triple(GreenDesaLight, GreenDesaPrimary, "✓ Diterima")
+        else -> Triple(RedRejectedContainer, RedRejectedText, "✕ Ditolak")
     }
 
     Surface(
