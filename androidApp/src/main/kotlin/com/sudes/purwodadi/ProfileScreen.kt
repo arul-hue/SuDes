@@ -348,6 +348,9 @@ fun ProfileScreen(
 // Komponen Baris Data Diri (Label : Value)
 @Composable
 fun ProfileDataRow(label: String, value: String) {
+    val displayValue = if (value.isBlank() || value == "-") "Belum diisi" else value
+    val isPlaceholder = value.isBlank() || value == "-"
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -365,8 +368,11 @@ fun ProfileDataRow(label: String, value: String) {
                 style = AppTypography.BodyRegular.copy(color = TextSecondary)
             )
             Text(
-                text = value,
-                style = AppTypography.BodyRegular.copy(color = TextPrimary, fontWeight = FontWeight.Medium)
+                text = displayValue,
+                style = AppTypography.BodyRegular.copy(
+                    color = if (isPlaceholder) TextPlaceholder else TextPrimary,
+                    fontWeight = if (isPlaceholder) FontWeight.Normal else FontWeight.Medium
+                )
             )
         }
     }

@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.sudes.purwodadi.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +36,7 @@ fun EditProfileScreen(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: () -> Unit = {}
 ) {
-    // State Form Edit Data Diri diisi dengan data awal (kosong jika belum ada)
+    // State Form Edit Data Diri (Mengubah nilai "-" awal menjadi kosong)
     var namaLengkap by remember { mutableStateOf(initialNama) }
     var nik by remember { mutableStateOf(if (initialNik == "-") "" else initialNik) }
     var tempatTanggalLahir by remember { mutableStateOf(if (initialTempatTgl == "-") "" else initialTempatTgl) }
@@ -43,11 +45,11 @@ fun EditProfileScreen(
     var statusPerkawinan by remember { mutableStateOf(if (initialStatus == "-") "" else initialStatus) }
     var alamatLengkap by remember { mutableStateOf(if (initialAlamat == "-") "" else initialAlamat) }
 
-    // State untuk Mengatur Munculnya Pop-up
+    // State untuk Mengatur Munculnya Pop-up & Loading lokal
     var showConfirmDialog by remember { mutableStateOf(false) }
     var isSavedSuccess by remember { mutableStateOf(false) }
+    var isUpdating by remember { mutableStateOf(false) }
 
-    val isLoading by authViewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
 
     // BackHandler untuk mencegat tombol Back fisik/gestur HP
@@ -163,9 +165,9 @@ fun EditProfileScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary),
-                enabled = !isLoading
+                enabled = !isUpdating
             ) {
-                if (isLoading) {
+                if (isUpdating) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
                     Text(
@@ -226,20 +228,34 @@ fun EditProfileScreen(
                     Button(
                         onClick = {
                             showConfirmDialog = false
-                            // Panggil fungsi update ke Firestore melalui AuthViewModel
-                            authViewModel.updateProfileData(
-                                namaLengkap = namaLengkap,
-                                nik = if (nik.isBlank()) "-" else nik,
-                                tempatTanggalLahir = if (tempatTanggalLahir.isBlank()) "-" else tempatTanggalLahir,
-                                pekerjaan = if (pekerjaan.isBlank()) "-" else pekerjaan,
-                                agama = if (agama.isBlank()) "-" else agama,
-                                statusPerkawinan = if (statusPerkawinan.isBlank()) "-" else statusPerkawinan,
-                                alamatLengkap = if (alamatLengkap.isBlank()) "-" else alamatLengkap,
-                                onSuccess = {
-                                    isSavedSuccess = true
-                                },
-                                onError = { _ -> }
-                            )
+                            isUpdating = true
+
+                            // Menyimpan data secara permanen ke Cloud Firestore (tanpa strip)
+                            val userId = FirebaseAuth.getInstance().currentUser?.uid
+                            if (userId != null) {
+                                val updatedData = hashMapOf<String, Any>(
+                                    "namaLengkap" to namaLengkap,
+                                    "nik" to nik.ifBlank { "" },
+                                    "tempatTanggalLahir" to tempatTanggalLahir.ifBlank { "" },
+                                    "pekerjaan" to pekerjaan.ifBlank { "" },
+                                    "agama" to agama.ifBlank { "" },
+                                    "statusPerkawinan" to statusPerkawinan.ifBlank { "" },
+                                    "alamatLengkap" to alamatLengkap.ifBlank { "" }
+                                )
+
+                                FirebaseFirestore.getInstance().collection("users")
+                                    .document(userId)
+                                    .update(updatedData)
+                                    .addOnSuccessListener {
+                                        isUpdating = false
+                                        isSavedSuccess = true
+                                    }
+                                    .addOnFailureListener {
+                                        isUpdating = false
+                                    }
+                            } else {
+                                isUpdating = false
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -303,7 +319,7 @@ fun EditProfileScreen(
             },
             text = {
                 Text(
-                    text = "Data diri Anda telah berhasil diperbarui.",
+                    text = "Data diri Anda telah berhasil diperbarui dan tersimpan permanen.",
                     style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
@@ -388,7 +404,7 @@ fun EditProfileDropdownField(
                 onClick = { expanded = !expanded },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp), // Tombol dibuat lebih tinggi agar mudah disentuh orang tua
+                    .height(56.dp),
                 shape = RoundedCornerShape(10.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
@@ -411,20 +427,19 @@ fun EditProfileDropdownField(
                 }
             }
 
-            // Menu Dropdown yang dipaksa terbuka ke bawah dengan offset
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .background(Color.White),
-                offset = androidx.compose.ui.unit.DpOffset(0.dp, 4.dp) // Posisi menu turun tepat di bawah tombol
+                offset = androidx.compose.ui.unit.DpOffset(0.dp, 4.dp)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 52.dp), // Area item pilihan lebih luas dan nyaman disentuh
+                            .heightIn(min = 52.dp),
                         text = {
                             Text(
                                 text = option,

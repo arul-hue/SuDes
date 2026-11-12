@@ -63,17 +63,20 @@ class MainActivity : ComponentActivity() {
                                 if (document.exists()) {
                                     namaLengkapUser = document.getString("namaLengkap") ?: (auth.currentUser?.displayName ?: "Warga")
                                     emailUser = document.getString("email") ?: (auth.currentUser?.email ?: "")
-                                    nikUser = document.getString("nik") ?: ""
-                                    tempatTglLahirUser = document.getString("tempatTanggalLahir") ?: ""
-                                    pekerjaanUser = document.getString("pekerjaan") ?: ""
-                                    agamaUser = document.getString("agama") ?: ""
-                                    statusUser = document.getString("statusPerkawinan") ?: ""
-                                    alamatUser = document.getString("alamatLengkap") ?: ""
+
+                                    // Mengubah penanganan strip (-) menjadi string kosong atau null jika belum diisi
+                                    nikUser = document.getString("nik")?.takeIf { it != "-" } ?: ""
+                                    tempatTglLahirUser = document.getString("tempatTanggalLahir")?.takeIf { it != "-" } ?: ""
+                                    pekerjaanUser = document.getString("pekerjaan")?.takeIf { it != "-" } ?: ""
+                                    agamaUser = document.getString("agama")?.takeIf { it != "-" } ?: ""
+                                    statusUser = document.getString("statusPerkawinan")?.takeIf { it != "-" } ?: ""
+                                    alamatUser = document.getString("alamatLengkap")?.takeIf { it != "-" } ?: ""
+
                                     roleUser = document.getString("role") ?: "warga"
 
-                                    // CEK APAKAH DATA UTAMA MASIH KOSONG / BELUM LENGKAP
-                                    val isNikEmpty = nikUser.isBlank() || nikUser == "-"
-                                    val isTglEmpty = tempatTglLahirUser.isBlank() || tempatTglLahirUser == "-"
+                                    // Cek apakah NIK atau Tempat Tanggal Lahir masih kosong
+                                    val isNikEmpty = nikUser.isBlank()
+                                    val isTglEmpty = tempatTglLahirUser.isBlank()
 
                                     if (roleUser != "admin" && (isNikEmpty || isTglEmpty)) {
                                         showIncompleteProfileDialog = true

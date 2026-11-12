@@ -203,46 +203,53 @@ class AuthViewModel : ViewModel() {
         onSuccess: () -> Unit
     ) {
         _isLoading.value = true
-        _errorMessage.value = null
-
         val credential = GoogleAuthProvider.getCredential(idToken, null)
+
         auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val firebaseUser = auth.currentUser
-                    val userId = firebaseUser?.uid ?: ""
+            .addOnSuccessListener { authResult ->
+                val firebaseUser = authResult.user
+                val userId = firebaseUser?.uid
 
-                    val userData = hashMapOf(
-                        "uid" to userId,
-                        "namaLengkap" to namaLengkap,
-                        "email" to email,
-                        "role" to "warga",
-                        "nik" to "-",
-                        "tempatTanggalLahir" to "-",
-                        "pekerjaan" to "-",
-                        "agama" to "-",
-                        "statusPerkawinan" to "-",
-                        "alamatLengkap" to "-",
-                        "createdAt" to com.google.firebase.Timestamp.now()
-                    )
+                if (userId != null) {
+                    val userRef = firestore.collection("users").document(userId)
 
-                    firestore.collection("users").document(userId)
-                        .set(userData, SetOptions.merge())
-                        .addOnCompleteListener { _ ->
+                    // Cek apakah dokumen user sudah ada di Firestore
+                    userRef.get().addOnSuccessListener { document ->
+                        if (!document.exists()) {
+                            // Jika BELUM ADA (Pertama kali login Google), buat data baru kosong
+                            val initialData = hashMapOf(
+                                "uid" to userId,
+                                "namaLengkap" to namaLengkap,
+                                "email" to email,
+                                "nik" to "",
+                                "tempatTanggalLahir" to "",
+                                "pekerjaan" to "",
+                                "agama" to "",
+                                "statusPerkawinan" to "",
+                                "alamatLengkap" to "",
+                                "role" to "warga"
+                            )
+                            userRef.set(initialData).addOnSuccessListener {
+                                _isLoading.value = false
+                                onSuccess()
+                            }.addOnFailureListener { e ->
+                                _isLoading.value = false
+                                _errorMessage.value = e.localizedMessage
+                            }
+                        } else {
+                            // Jika SUDAH ADA, JANGAN TIMPA! Biarkan data lama aman.
                             _isLoading.value = false
                             onSuccess()
                         }
-                } else {
-                    _isLoading.value = false
-                    val rawMessage = task.exception?.message ?: "Terjadi kesalahan sistem"
-
-                    _errorMessage.value = when {
-                        rawMessage.contains("network", ignoreCase = true) ->
-                            "Koneksi internet bermasalah. Periksa kembali sambungan Anda."
-                        else ->
-                            "Autentikasi Google gagal: $rawMessage"
+                    }.addOnFailureListener { e ->
+                        _isLoading.value = false
+                        _errorMessage.value = e.localizedMessage
                     }
                 }
+            }
+            .addOnFailureListener { e ->
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage
             }
     }
 
