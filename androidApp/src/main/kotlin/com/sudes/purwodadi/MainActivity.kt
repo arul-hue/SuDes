@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("splash") }
                 val isLoading by authViewModel.isLoading.collectAsState()
 
-                // State Dinamis untuk Profil Pengguna
+                // State Dinamis untuk Profil Pengguna (Murni menggunakan namaLengkap)
                 var namaLengkapUser by remember { mutableStateOf("Warga") }
                 var emailUser by remember { mutableStateOf("") }
                 var nikUser by remember { mutableStateOf("") }
@@ -51,8 +51,10 @@ class MainActivity : ComponentActivity() {
                 var alamatUser by remember { mutableStateOf("") }
                 var roleUser by remember { mutableStateOf("warga") }
 
+                // State untuk mengontrol pop-up peringatan lengkapi data saat login
                 var showIncompleteProfileDialog by remember { mutableStateOf(false) }
 
+                // Fungsi untuk mengambil data terbaru dari Firestore
                 val fetchUserData = {
                     val userId = auth.currentUser?.uid
                     if (userId != null) {
@@ -69,6 +71,7 @@ class MainActivity : ComponentActivity() {
                                     alamatUser = document.getString("alamatLengkap") ?: ""
                                     roleUser = document.getString("role") ?: "warga"
 
+                                    // CEK APAKAH DATA UTAMA MASIH KOSONG / BELUM LENGKAP
                                     val isNikEmpty = nikUser.isBlank() || nikUser == "-"
                                     val isTglEmpty = tempatTglLahirUser.isBlank() || tempatTglLahirUser == "-"
 
@@ -80,21 +83,36 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // RIWAYAT TAB GLOBAL
                 val tabHistory = remember { mutableStateListOf("home") }
                 var backPressedTime by remember { mutableStateOf(0L) }
 
-                // State untuk surat (Diperbaiki menggunakan String standar)
+                // State untuk surat
                 var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Domisili") }
-                var selectedStatusSurat by remember { mutableStateOf("Proses") }
+                var selectedStatusSurat by remember { mutableStateOf(StatusPengajuan.PROSES) }
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
                 var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt03.jpg") }
+
+                var selectedFields by remember {
+                    mutableStateOf(
+                        listOf(
+                            DetailFieldItem("Nama Lengkap", namaLengkapUser),
+                            DetailFieldItem("NIK", nikUser),
+                            DetailFieldItem("Tempat, Tanggal Lahir", tempatTglLahirUser),
+                            DetailFieldItem("Jenis Kelamin", "Laki-laki"),
+                            DetailFieldItem("Agama", agamaUser),
+                            DetailFieldItem("Pekerjaan", pekerjaanUser),
+                            DetailFieldItem("Alamat Lengkap", alamatUser)
+                        )
+                    )
+                }
 
                 val context = this
 
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1)
+                            tabHistory.removeAt(tabHistory.size - 1) // DIPERBAIKI (Tidak terpotong lagi)
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -191,14 +209,19 @@ class MainActivity : ComponentActivity() {
                         }
                         "admin_dashboard" -> {
                             AdminDashboardScreen(
-                                onDetailSuratClicked = { suratId ->
-                                    // Navigasi ke detail admin jika diperlukan
-                                },
+                                onDetailClicked = { _ -> },
+                                onSelesaikanClicked = { currentScreen = "admin_edit_pengajuan" },
                                 onLogoutClicked = {
                                     auth.signOut()
                                     currentScreen = "login"
                                     tabHistory.clear()
                                 }
+                            )
+                        }
+                        "admin_edit_pengajuan" -> {
+                            AdminEditPengajuanScreen(
+                                onBackClicked = { currentScreen = "admin_dashboard" },
+                                onSaveSuccess = { currentScreen = "admin_dashboard" }
                             )
                         }
                         "home" -> {
@@ -247,7 +270,6 @@ class MainActivity : ComponentActivity() {
                                     when {
                                         jenisSurat.contains("Usaha", ignoreCase = true) -> currentScreen = "surat_usaha"
                                         jenisSurat.contains("Domisili", ignoreCase = true) -> currentScreen = "surat_domisili"
-                                        jenisSurat.contains("Tidak Mampu", ignoreCase = true) -> currentScreen = "surat_sktm"
                                         else -> currentScreen = "home"
                                     }
                                 }
@@ -255,8 +277,13 @@ class MainActivity : ComponentActivity() {
                         }
                         "detail_pengajuan" -> {
                             DetailPengajuanScreen(
-                                pengajuanId = "",
-                                onBackClicked = { currentScreen = "status" }
+                                jenisSurat = selectedJenisSurat,
+                                status = selectedStatusSurat,
+                                alasanDitolak = selectedAlasanDitolak,
+                                namaFileRt = selectedNamaFileRt,
+                                fields = selectedFields,
+                                onBackClicked = { currentScreen = "status" },
+                                onResubmitClicked = { currentScreen = "home" }
                             )
                         }
                         "profile" -> {
@@ -327,9 +354,10 @@ class MainActivity : ComponentActivity() {
                         "surat_sktm" -> SuratTidakMampuScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                     }
 
+                    // POP-UP PERINGATAN LENGKAPI DATA SAAT BARU MASUK (Ditempatkan di dalam Box dan SudesTheme)
                     if (showIncompleteProfileDialog) {
                         AlertDialog(
-                            onDismissRequest = { },
+                            onDismissRequest = { /* Tidak bisa ditutup sembarangan */ },
                             containerColor = Color.White,
                             shape = RoundedCornerShape(20.dp),
                             title = {

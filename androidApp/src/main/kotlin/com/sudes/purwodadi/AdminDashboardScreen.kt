@@ -1,6 +1,7 @@
 package com.sudes.purwodadi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,71 +17,74 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
+data class AdminPengajuanItem(
+    val id: String,
+    val jenisSurat: String,
+    val namaPemohon: String,
+    val tanggal: String,
+    val status: StatusPengajuan,
+    val pesanStatus: String
+)
+
 @Composable
 fun AdminDashboardScreen(
-    onDetailSuratClicked: (String) -> Unit = {},
+    onDetailClicked: (String) -> Unit = {},
+    onSelesaikanClicked: (String) -> Unit = {},
     onLogoutClicked: () -> Unit = {}
 ) {
-    val suratViewModel = remember { SuratViewModel() }
-    val listPengajuanAdmin by suratViewModel.daftarSuratAdmin.collectAsState()
-    val isLoading by suratViewModel.isLoading.collectAsState()
-
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Semua") }
-    val scrollState = rememberScrollState()
 
-    // Muat semua surat untuk admin saat pertama kali dibuka
-    LaunchedEffect(Unit) {
-        suratViewModel.muatSemuaSuratUntukAdmin()
+    // State untuk mengontrol pop-up konfirmasi logout
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    val scrollState = rememberScrollState()
+    val filterScrollState = rememberScrollState()
+
+    // Data tiruan pengajuan surat untuk panel admin
+    val listPengajuan = remember {
+        mutableStateListOf(
+            AdminPengajuanItem(
+                id = "1",
+                jenisSurat = "Surat Keterangan Domisili",
+                namaPemohon = "Sahal Alfarizi",
+                tanggal = "03 Nov 2026, 09.15",
+                status = StatusPengajuan.PROSES,
+                pesanStatus = "Sedang diverifikasi oleh Perangkat Desa"
+            ),
+            AdminPengajuanItem(
+                id = "2",
+                jenisSurat = "Surat Keterangan Usaha",
+                namaPemohon = "Roy Pratama",
+                tanggal = "01 Nov 2026, 14.20",
+                status = StatusPengajuan.DITERIMA,
+                pesanStatus = "Surat dapat diambil di Balai Desa"
+            ),
+            AdminPengajuanItem(
+                id = "3",
+                jenisSurat = "Surat Keterangan Tidak Mampu",
+                namaPemohon = "Syahrul Rek",
+                tanggal = "29 Okt 2026, 11.00",
+                status = StatusPengajuan.DITOLAK,
+                pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
+            )
+        )
     }
 
-    val totalCount = listPengajuanAdmin.size
-    val prosesCount = listPengajuanAdmin.count { it.status.equals("Proses", ignoreCase = true) }
-    val diterimaCount = listPengajuanAdmin.count { it.status.equals("Diterima", ignoreCase = true) }
-    val ditolakCount = listPengajuanAdmin.count { it.status.equals("Ditolak", ignoreCase = true) }
-
-    val filteredList = listPengajuanAdmin.filter { item ->
+    // Logika Filter & Pencarian Admin
+    val filteredList = listPengajuan.filter { item ->
         val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
-                item.namaLengkap.contains(searchQuery, ignoreCase = true) ||
-                item.nik.contains(searchQuery, ignoreCase = true)
+                item.namaPemohon.contains(searchQuery, ignoreCase = true)
         val matchFilter = when (selectedFilter) {
-            "Proses" -> item.status.equals("Proses", ignoreCase = true)
-            "Diterima" -> item.status.equals("Diterima", ignoreCase = true)
-            "Ditolak" -> item.status.equals("Ditolak", ignoreCase = true)
+            "Proses" -> item.status == StatusPengajuan.PROSES
+            "Diterima" -> item.status == StatusPengajuan.DITERIMA
+            "Ditolak" -> item.status == StatusPengajuan.DITOLAK
             else -> true
         }
         matchSearch && matchFilter
     }
 
     Scaffold(
-        topBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = GreenDesaPrimary,
-                shadowElevation = 4.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Dashboard Admin Desa",
-                        style = AppTypography.HeadingMedium.copy(color = Color.White)
-                    )
-                    IconButton(onClick = onLogoutClicked) {
-                        Icon(
-                            imageVector = Icons.Default.Logout,
-                            contentDescription = "Keluar",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-        },
         containerColor = GrayBackground
     ) { innerPadding ->
         Column(
@@ -88,102 +92,228 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
-                .padding(16.dp)
         ) {
-            // Kotak Pencarian
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Cari warga atau jenis surat...", color = TextPlaceholder, style = AppTypography.BodyRegular) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Cari", tint = TextSecondary) },
-                textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    unfocusedBorderColor = GrayBorder,
-                    focusedBorderColor = GreenDesaPrimary,
-                    cursorColor = GreenDesaPrimary
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Ringkasan Statistik
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // HEADER ATAS HIJAU (Berisi Judul, Tulisan Admin, & Tombol Keluar)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GreenDesaPrimary)
+                    .padding(20.dp)
             ) {
-                AdminStatCard(title = "Total", count = totalCount, color = GreenDesaPrimary, modifier = Modifier.weight(1f))
-                AdminStatCard(title = "Proses", count = prosesCount, color = Color(0xFFD97706), modifier = Modifier.weight(1f))
-                AdminStatCard(title = "Diterima", count = diterimaCount, color = Color(0xFF059669), modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Dashboard Pelayanan",
+                            style = AppTypography.HeadingLarge.copy(color = Color.White)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Admin", // Diubah dari "SUDES" menjadi "Admin"
+                            style = AppTypography.Caption.copy(
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    // TOMBOL KELUAR DI HEADER KANAN
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Keluar Akun",
+                            tint = Color.White
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // KOLOM PENCARIAN
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = {
+                        Text(
+                            "Cari nama pemohon atau jenis surat",
+                            color = TextPlaceholder,
+                            style = AppTypography.BodyRegular
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Cari",
+                            tint = TextSecondary
+                        )
+                    },
+                    textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        unfocusedBorderColor = GrayBorder,
+                        focusedBorderColor = GreenDesaPrimary,
+                        cursorColor = GreenDesaPrimary
+                    )
+                )
 
-            if (isLoading && listPengajuanAdmin.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = GreenDesaPrimary)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(filterScrollState),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AdminFilterChipItem(
+                        text = "Semua (${listPengajuan.size})",
+                        isSelected = selectedFilter == "Semua",
+                        onClick = { selectedFilter = "Semua" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Proses (${listPengajuan.count { it.status == StatusPengajuan.PROSES }})",
+                        isSelected = selectedFilter == "Proses",
+                        onClick = { selectedFilter = "Proses" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Diterima (${listPengajuan.count { it.status == StatusPengajuan.DITERIMA }})",
+                        isSelected = selectedFilter == "Diterima",
+                        onClick = { selectedFilter = "Diterima" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Ditolak (${listPengajuan.count { it.status == StatusPengajuan.DITOLAK }})",
+                        isSelected = selectedFilter == "Ditolak",
+                        onClick = { selectedFilter = "Ditolak" }
+                    )
                 }
-            } else if (filteredList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(text = "Belum ada data pengajuan surat.", style = AppTypography.BodyRegular, color = TextSecondary)
-                }
-            } else {
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // DAFTAR KARTU PENGAJUAN ADMIN
                 filteredList.forEach { item ->
                     AdminPengajuanCard(
                         item = item,
-                        onVerifyClicked = { diterima, nomorResmi, alasan ->
-                            suratViewModel.verifikasiSuratAdmin(
-                                suratId = item.id,
-                                nomorSuratResmi = nomorResmi,
-                                diterima = diterima,
-                                alasanPenolakan = alasan,
-                                onSuccess = {},
-                                onError = {}
-                            )
-                        },
-                        onDetailClicked = { onDetailSuratClicked(item.id) }
+                        onSelesaikanClicked = { onSelesaikanClicked(item.id) },
+                        onDetailClicked = { onDetailClicked(item.jenisSurat) }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
     }
+
+    // POP-UP DIALOG KONFIRMASI KELUAR AKUN
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color(0xFFFEE2E2)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = null,
+                                tint = Color(0xFFDC2626)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Keluar dari Akun Admin?",
+                        style = AppTypography.HeadingMedium,
+                        color = TextPrimary
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Anda harus memasukkan email admin kembali untuk mengakses dashboard pelayanan kelurahan.",
+                    style = AppTypography.BodyRegular,
+                    color = TextSecondary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogoutClicked()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                ) {
+                    Text(
+                        text = "Ya, Keluar",
+                        style = AppTypography.ButtonText
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showLogoutDialog = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
+                ) {
+                    Text(
+                        text = "Batal",
+                        style = AppTypography.ButtonText.copy(color = TextPrimary)
+                    )
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun AdminStatCard(title: String, count: Int, color: Color, modifier: Modifier = Modifier) {
+fun AdminFilterChipItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = Color.White,
-        shadowElevation = 1.dp
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) GreenDesaPrimary else Color.White,
+        border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, GrayBorder),
+        modifier = Modifier.height(38.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Text(text = title, style = AppTypography.Caption, color = TextSecondary)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = count.toString(), style = AppTypography.HeadingMedium, color = color)
+            Text(
+                text = text,
+                style = AppTypography.Caption.copy(fontWeight = FontWeight.Medium),
+                color = if (isSelected) Color.White else TextPrimary
+            )
         }
     }
 }
 
 @Composable
 fun AdminPengajuanCard(
-    item: PengajuanSurat,
-    onVerifyClicked: (Boolean, String, String) -> Unit,
+    item: AdminPengajuanItem,
+    onSelesaikanClicked: () -> Unit,
     onDetailClicked: () -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-    var nomorResmiInput by remember { mutableStateOf("") }
-    var alasanTolakInput by remember { mutableStateOf("") }
-    var isAksiTerima by remember { mutableStateOf(true) }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -200,110 +330,86 @@ fun AdminPengajuanCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                StatusFirestoreBadge(status = item.status)
-                Text(text = item.tanggalPengajuan, style = AppTypography.Caption, color = TextSecondary)
+                StatusBadge(status = item.status)
+                Text(
+                    text = item.tanggal,
+                    style = AppTypography.Caption,
+                    color = TextSecondary
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(text = item.jenisSurat, style = AppTypography.HeadingMedium, color = TextPrimary)
+            Text(
+                text = item.jenisSurat,
+                style = AppTypography.HeadingMedium,
+                color = TextPrimary
+            )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = "Pemohon: ${item.namaLengkap} (NIK: ${item.nik})", style = AppTypography.BodyRegular, color = TextSecondary)
-            Text(text = "Keperluan: ${item.keperluanSurat}", style = AppTypography.BodyRegular, color = TextSecondary)
+            Text(
+                text = "Nama Pemohon: ${item.namaPemohon}",
+                style = AppTypography.BodyRegular,
+                color = TextSecondary
+            )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            if (item.status.equals("Proses", ignoreCase = true)) {
+            val containerColor = when (item.status) {
+                StatusPengajuan.PROSES -> OrangeProcessContainer
+                StatusPengajuan.DITERIMA -> GreenDesaLight
+                StatusPengajuan.DITOLAK -> RedRejectedContainer
+            }
+            val textColor = when (item.status) {
+                StatusPengajuan.PROSES -> OrangeProcessText
+                StatusPengajuan.DITERIMA -> GreenDesaPrimary
+                StatusPengajuan.DITOLAK -> RedRejectedText
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = containerColor
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    if (item.status == StatusPengajuan.DITOLAK) {
+                        Text(
+                            text = "Alasan Penolakan Admin:",
+                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                    Text(
+                        text = item.pesanStatus,
+                        style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
+                        color = textColor
+                    )
+                }
+            }
+
+            // Tombol "Selesaikan" khusus untuk kartu yang berstatus PROSES
+            if (item.status == StatusPengajuan.PROSES) {
+                Spacer(modifier = Modifier.height(14.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.End
                 ) {
                     Button(
-                        onClick = {
-                            isAksiTerima = true
-                            showDialog = true
-                        },
-                        modifier = Modifier.weight(1f).height(42.dp),
+                        onClick = onSelesaikanClicked,
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF059669))
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Text(text = "Terima", style = AppTypography.ButtonText)
+                        Text(
+                            text = "Selesaikan",
+                            style = AppTypography.Caption.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
                     }
-
-                    Button(
-                        onClick = {
-                            isAksiTerima = false
-                            showDialog = true
-                        },
-                        modifier = Modifier.weight(1f).height(42.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
-                    ) {
-                        Text(text = "Tolak", style = AppTypography.ButtonText)
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Alignment.End.let { Arrangement.End }
-            ) {
-                OutlinedButton(
-                    onClick = onDetailClicked,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = GreenDesaLight),
-                    border = null,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Text(text = "Lihat Detail Lengkap", style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold), color = GreenDesaPrimary)
                 }
             }
         }
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = if (isAksiTerima) "Terima Pengajuan Surat" else "Tolak Pengajuan Surat") },
-            text = {
-                Column {
-                    if (isAksiTerima) {
-                        Text(text = "Masukkan Nomor Surat Resmi Desa:")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = nomorResmiInput,
-                            onValueChange = { nomorResmiInput = it },
-                            placeholder = { Text("Contoh: 400/123/SKTM/2026") },
-                            singleLine = true
-                        )
-                    } else {
-                        Text(text = "Masukkan Alasan Penolakan:")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = alasanTolakInput,
-                            onValueChange = { alasanTolakInput = it },
-                            placeholder = { Text("Contoh: Foto pengantar RT kurang jelas") }
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                        onVerifyClicked(isAksiTerima, nomorResmiInput, alasanTolakInput)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
-                ) {
-                    Text("Konfirmasi")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Batal")
-                }
-            }
-        )
     }
 }
