@@ -207,16 +207,12 @@ class AuthViewModel : ViewModel() {
 
         auth.signInWithCredential(credential)
             .addOnSuccessListener { authResult ->
-                val firebaseUser = authResult.user
-                val userId = firebaseUser?.uid
-
+                val userId = authResult.user?.uid
                 if (userId != null) {
                     val userRef = firestore.collection("users").document(userId)
-
-                    // Cek apakah dokumen user sudah ada di Firestore
                     userRef.get().addOnSuccessListener { document ->
                         if (!document.exists()) {
-                            // Jika BELUM ADA (Pertama kali login Google), buat data baru kosong
+                            // Jika dokumen belum ada, buat baru
                             val initialData = hashMapOf(
                                 "uid" to userId,
                                 "namaLengkap" to namaLengkap,
@@ -237,19 +233,30 @@ class AuthViewModel : ViewModel() {
                                 _errorMessage.value = e.localizedMessage
                             }
                         } else {
-                            // Jika SUDAH ADA, JANGAN TIMPA! Biarkan data lama aman.
-                            _isLoading.value = false
-                            onSuccess()
+                            // Jika dokumen sudah ada, pastikan email di Firestore ikut diperbarui dengan email Google terbaru
+                            userRef.update("email", email).addOnCompleteListener {
+                                _isLoading.value = false
+                                onSuccess()
+                            }
                         }
                     }.addOnFailureListener { e ->
                         _isLoading.value = false
                         _errorMessage.value = e.localizedMessage
                     }
+                } else {
+                    _isLoading.value = false
+                    _errorMessage.value = "Gagal mendapatkan identitas pengguna."
                 }
             }
             .addOnFailureListener { e ->
+                val errorMessage = e.localizedMessage ?: ""
+                if (errorMessage.contains("provider already linked", ignoreCase = true) ||
+                    errorMessage.contains("ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL", ignoreCase = true)) {
+                    _errorMessage.value = "Akun Google ini sudah terhubung dengan sesi lain. Silakan gunakan metode masuk manual."
+                } else {
+                    _errorMessage.value = errorMessage
+                }
                 _isLoading.value = false
-                _errorMessage.value = e.localizedMessage
             }
     }
 

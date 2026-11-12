@@ -21,9 +21,8 @@ import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun ProfileScreen(
-    namaLengkap: String = "Warga", // Murni menggunakan namaLengkap
+    namaLengkap: String = "Warga",
     userRole: String = "Warga Desa Purwodadi Simpang",
-    // Parameter data diri dinamis
     nik: String = "-",
     tempatTanggalLahir: String = "-",
     pekerjaan: String = "-",
@@ -34,16 +33,16 @@ fun ProfileScreen(
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
-    onUbahEmailClicked: () -> Unit = {},
+    onGantiEmailClicked: () -> Unit = {}, // 👈 Diseragamkan menjadi onGantiEmailClicked
     onGantiNoHpClicked: () -> Unit = {},
     onGantiPasswordClicked: () -> Unit = {},
     onVideoTutorialClicked: () -> Unit = {},
     onBantuanFaqClicked: () -> Unit = {},
     onTentangAplikasiClicked: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf(2) } // Tab Profil aktif di indeks ke-2
+    var selectedTab by remember { mutableStateOf(2) }
     val scrollState = rememberScrollState()
-    var showLogoutDialog by remember { mutableStateOf(false) } // State pop-up keluar akun
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -109,7 +108,6 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            // HEADER PROFIL (Avatar & Info Warga)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,7 +135,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = namaLengkap, // Menampilkan nama asli dari database
+                            text = namaLengkap,
                             style = AppTypography.HeadingLarge.copy(color = Color.White)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -218,7 +216,7 @@ fun ProfileScreen(
                         HorizontalDivider(color = BorderColor, thickness = 1.dp)
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        ProfileMenuItem(title = "Ubah Email Google", onClick = onUbahEmailClicked)
+                        ProfileMenuItem(title = "Ganti Email Google", onClick = onGantiEmailClicked) // 👈 Diseragamkan
                         ProfileMenuItem(title = "Ganti Nomor Handphone", onClick = onGantiNoHpClicked)
                         ProfileMenuItem(title = "Ganti Password", onClick = onGantiPasswordClicked)
                     }
@@ -253,7 +251,6 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // TOMBOL KELUAR DARI AKUN
                 OutlinedButton(
                     onClick = { showLogoutDialog = true },
                     modifier = Modifier
@@ -276,7 +273,6 @@ fun ProfileScreen(
         }
     }
 
-    // POP-UP DIALOG KONFIRMASI KELUAR AKUN
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -345,7 +341,6 @@ fun ProfileScreen(
     }
 }
 
-// Komponen Baris Data Diri (Label : Value)
 @Composable
 fun ProfileDataRow(label: String, value: String) {
     val displayValue = if (value.isBlank() || value == "-") "Belum diisi" else value
@@ -378,7 +373,6 @@ fun ProfileDataRow(label: String, value: String) {
     }
 }
 
-// Komponen Item Menu dengan Chevron Kanan
 @Composable
 fun ProfileMenuItem(title: String, onClick: () -> Unit) {
     Surface(

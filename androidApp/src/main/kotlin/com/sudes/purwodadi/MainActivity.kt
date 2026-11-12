@@ -40,7 +40,6 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("splash") }
                 val isLoading by authViewModel.isLoading.collectAsState()
 
-                // State Dinamis untuk Profil Pengguna (Murni menggunakan namaLengkap)
                 var namaLengkapUser by remember { mutableStateOf("Warga") }
                 var emailUser by remember { mutableStateOf("") }
                 var nikUser by remember { mutableStateOf("") }
@@ -51,10 +50,8 @@ class MainActivity : ComponentActivity() {
                 var alamatUser by remember { mutableStateOf("") }
                 var roleUser by remember { mutableStateOf("warga") }
 
-                // State untuk mengontrol pop-up peringatan lengkapi data saat login
                 var showIncompleteProfileDialog by remember { mutableStateOf(false) }
 
-                // Fungsi untuk mengambil data terbaru dari Firestore
                 val fetchUserData = {
                     val userId = auth.currentUser?.uid
                     if (userId != null) {
@@ -64,7 +61,6 @@ class MainActivity : ComponentActivity() {
                                     namaLengkapUser = document.getString("namaLengkap") ?: (auth.currentUser?.displayName ?: "Warga")
                                     emailUser = document.getString("email") ?: (auth.currentUser?.email ?: "")
 
-                                    // Mengubah penanganan strip (-) menjadi string kosong atau null jika belum diisi
                                     nikUser = document.getString("nik")?.takeIf { it != "-" } ?: ""
                                     tempatTglLahirUser = document.getString("tempatTanggalLahir")?.takeIf { it != "-" } ?: ""
                                     pekerjaanUser = document.getString("pekerjaan")?.takeIf { it != "-" } ?: ""
@@ -74,7 +70,6 @@ class MainActivity : ComponentActivity() {
 
                                     roleUser = document.getString("role") ?: "warga"
 
-                                    // Cek apakah NIK atau Tempat Tanggal Lahir masih kosong
                                     val isNikEmpty = nikUser.isBlank()
                                     val isTglEmpty = tempatTglLahirUser.isBlank()
 
@@ -86,11 +81,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // RIWAYAT TAB GLOBAL
                 val tabHistory = remember { mutableStateListOf("home") }
                 var backPressedTime by remember { mutableStateOf(0L) }
 
-                // State untuk surat
                 var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Domisili") }
                 var selectedStatusSurat by remember { mutableStateOf(StatusPengajuan.PROSES) }
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
@@ -115,7 +108,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1) // DIPERBAIKI (Tidak terpotong lagi)
+                            tabHistory.removeAt(tabHistory.size - 1)
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -316,7 +309,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                     tabHistory.clear()
                                 },
-                                onUbahEmailClicked = { currentScreen = "ubah_email" },
+                                onGantiEmailClicked = { currentScreen = "ganti_email" }, // 👈 Diseragamkan
                                 onGantiNoHpClicked = { currentScreen = "ganti_nohp" },
                                 onGantiPasswordClicked = { currentScreen = "ganti_password" },
                                 onVideoTutorialClicked = { currentScreen = "video_tutorial" },
@@ -344,7 +337,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        "ubah_email" -> UbahEmailScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
+                        "ganti_email" -> GantiEmailScreen( // 👈 Diseragamkan menjadi ganti_email
+                            onBackClicked = { currentScreen = "profile" },
+                            onSaveSuccess = { currentScreen = "profile" }
+                        )
                         "ganti_nohp" -> GantiNoHpScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
                         "ganti_password" -> GantiPasswordScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
                         "video_tutorial" -> VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
@@ -357,10 +353,9 @@ class MainActivity : ComponentActivity() {
                         "surat_sktm" -> SuratTidakMampuScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                     }
 
-                    // POP-UP PERINGATAN LENGKAPI DATA SAAT BARU MASUK (Ditempatkan di dalam Box dan SudesTheme)
                     if (showIncompleteProfileDialog) {
                         AlertDialog(
-                            onDismissRequest = { /* Tidak bisa ditutup sembarangan */ },
+                            onDismissRequest = { },
                             containerColor = Color.White,
                             shape = RoundedCornerShape(20.dp),
                             title = {
