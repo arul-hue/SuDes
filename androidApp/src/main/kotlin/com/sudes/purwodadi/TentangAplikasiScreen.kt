@@ -1,6 +1,7 @@
 package com.sudes.purwodadi
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,12 +9,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
@@ -23,7 +26,6 @@ import com.sudes.purwodadi.ui.theme.*
 fun TentangAplikasiScreen(
     onBackClicked: () -> Unit = {}
 ) {
-
     BackHandler {
         onBackClicked()
     }
@@ -69,18 +71,19 @@ fun TentangAplikasiScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Logo SuDes
+            // Logo SuDes dari R.drawable.logo_sudes
             Box(
                 modifier = Modifier
-                    .size(72.dp)
-                    .background(GreenDesaPrimary, shape = RoundedCornerShape(16.dp)),
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "SuDes Logo",
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.logo_sudes),
+                    contentDescription = "Logo SuDes",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
 
@@ -93,7 +96,7 @@ fun TentangAplikasiScreen(
             )
             Text(
                 text = "Layanan Surat Online Desa",
-                style = AppTypography.HeadingMedium,
+                style = AppTypography.BodyRegular,
                 color = GreenDesaPrimary
             )
 
@@ -180,15 +183,20 @@ fun TentangAplikasiScreen(
                 }
             }
 
+            // 💡 Spacer fleksibel untuk mendorong footer copyright menempel rapi di bagian bawah layar
+            Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Footer Copyright
+            // Footer Copyright ala Splash Screen
             Text(
                 text = "Pemerintah Desa Purwodadi Simpang © 2026",
                 style = AppTypography.Caption,
                 color = TextPlaceholder,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
