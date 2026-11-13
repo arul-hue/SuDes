@@ -339,7 +339,11 @@ class MainActivity : ComponentActivity() {
                         }
                         "ganti_email" -> GantiEmailScreen(
                             onBackClicked = { currentScreen = "profile" },
-                            onSaveSuccess = { currentScreen = "profile" }
+                            onSaveSuccess = { currentScreen = "profile" },
+                            onLogoutRequested = {
+                                currentScreen = "login"
+                                tabHistory.clear()
+                            }
                         )
                         // "ganti_nohp" sudah dihapus total dari sini
                         "ganti_password" -> GantiPasswordScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })

@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -32,25 +34,22 @@ import com.sudes.purwodadi.ui.theme.*
 @Composable
 fun GantiEmailScreen(
     onBackClicked: () -> Unit = {},
-    onSaveSuccess: () -> Unit = {}
+    onSaveSuccess: () -> Unit = {},
+    onLogoutRequested: () -> Unit = {}
 ) {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val context = LocalContext.current
 
-    // Deteksi apakah user login menggunakan Google atau Manual
     val isGoogleLogin = currentUser?.providerData?.any { it.providerId == "google.com" } == true
 
-    var emailSaatIni by remember { mutableStateOf(currentUser?.email ?: "email@gmail.com") }
+    var emailSaatIni by remember { mutableStateOf(currentUser?.email ?: "") }
     var emailBaru by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        currentUser?.reload()?.addOnCompleteListener {
-            emailSaatIni = currentUser.email ?: "email@gmail.com"
-        }
-    }
+    // 💡 State untuk menampilkan pop-up konfirmasi logout
+    var showLogoutConfirmDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
@@ -102,7 +101,6 @@ fun GantiEmailScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
-            // JIKA USER LOGIN MENGGUNAKAN GOOGLE
             if (isGoogleLogin) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -144,15 +142,56 @@ fun GantiEmailScreen(
                     }
                 }
             } else {
-                // JIKA USER LOGIN MENGGUNAKAN AKUN MANUAL (EMAIL & PASSWORD)
-                GantiEmailFormTextField(
-                    label = "Email Saat Ini",
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = "Email Saat Ini",
+                        style = AppTypography.LabelForm,
+                        color = TextPrimary
+                    )
+                    // Tombol yang memunculkan pop-up konfirmasi
+                    TextButton(
+                        onClick = { showLogoutConfirmDialog = true },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = "Keluar",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFFDC2626)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Segarkan Sesi (Masuk Ulang)",
+                            style = AppTypography.Caption.copy(
+                                color = Color(0xFFDC2626),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                OutlinedTextField(
                     value = emailSaatIni,
                     onValueChange = {},
-                    placeholder = "",
                     enabled = false,
-                    keyboardType = KeyboardType.Email
+                    textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledContainerColor = Color.White,
+                        disabledBorderColor = GrayBorder,
+                        disabledTextColor = TextPrimary
+                    )
                 )
+
+                Spacer(modifier = Modifier.height(14.dp))
 
                 GantiEmailFormTextField(
                     label = "Email Baru",
@@ -180,7 +219,7 @@ fun GantiEmailScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "1. Masukkan email baru.\n2. Klik tombol kirim, lalu buka email baru Anda.\n3. Klik tautan verifikasi yang masuk untuk mengaktifkan.",
+                            text = "1. Masukkan email baru dan klik kirim.\n2. Buka email baru Anda dan klik tautan verifikasi.\n3. Kembali ke sini, lalu klik **'Segarkan Sesi (Masuk Ulang)'** di atas untuk masuk menggunakan email baru Anda.",
                             style = AppTypography.BodyRegular.copy(color = Color(0xFF92400E))
                         )
                     }
@@ -235,6 +274,88 @@ fun GantiEmailScreen(
         }
     }
 
+    // 💡 POP-UP KONFIRMASI (ALERT DIALOG) SEBELUM LOGOUT
+    if (showLogoutConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutConfirmDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = CircleShape,
+                        color = Color(0xFFFEF2F2)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Logout,
+                                contentDescription = "Keluar",
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Segarkan Sesi Akun?",
+                        style = AppTypography.HeadingMedium,
+                        color = TextPrimary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Anda akan dikeluarkan sementara dari aplikasi agar email terbaru Anda langsung tersinkronisasi. Apakah Anda ingin melanjutkan?",
+                    style = AppTypography.BodyRegular,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            showLogoutConfirmDialog = false
+                            auth.signOut()
+                            Toast.makeText(context, "Sesi dibersihkan. Silakan masuk kembali.", Toast.LENGTH_LONG).show()
+                            onLogoutRequested()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                    ) {
+                        Text(text = "Ya, Segarkan Sesi", style = AppTypography.ButtonText.copy(color = Color.White))
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { showLogoutConfirmDialog = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(text = "Batal", color = TextPrimary, style = AppTypography.ButtonText)
+                    }
+                }
+            },
+            dismissButton = {}
+        )
+    }
+
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { },
@@ -271,7 +392,7 @@ fun GantiEmailScreen(
             },
             text = {
                 Text(
-                    text = "Silakan cek kotak masuk email baru Anda ($emailBaru) dan klik tautan verifikasi yang dikirim untuk menyelesaikan perubahan.",
+                    text = "Silakan cek kotak masuk email baru Anda ($emailBaru) dan klik tautan verifikasi. Setelah itu, klik tombol **'Segarkan Sesi (Masuk Ulang)'** untuk memperbarui email akun Anda.",
                     style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
@@ -339,7 +460,9 @@ fun GantiEmailFormTextField(
                 unfocusedBorderColor = GrayBorder,
                 focusedBorderColor = GreenDesaPrimary,
                 focusedLabelColor = GreenDesaPrimary,
-                cursorColor = GreenDesaPrimary
+                cursorColor = GreenDesaPrimary,
+                disabledTextColor = TextPrimary,
+                disabledBorderColor = GrayBorder
             )
         )
     }
