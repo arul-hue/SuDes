@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
@@ -33,13 +34,17 @@ fun ProfileScreen(
     onTabSelected: (Int) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
-    onGantiEmailClicked: () -> Unit = {}, // 👈 Diseragamkan menjadi onGantiEmailClicked
-    onGantiNoHpClicked: () -> Unit = {},
+    onGantiEmailClicked: () -> Unit = {},
+    // onGantiNoHpClicked sudah dihapus di sini
     onGantiPasswordClicked: () -> Unit = {},
     onVideoTutorialClicked: () -> Unit = {},
     onBantuanFaqClicked: () -> Unit = {},
     onTentangAplikasiClicked: () -> Unit = {}
 ) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    // Deteksi apakah user login menggunakan Google atau Manual
+    val isGoogleLogin = currentUser?.providerData?.any { it.providerId == "google.com" } == true
+
     var selectedTab by remember { mutableStateOf(2) }
     val scrollState = rememberScrollState()
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -198,31 +203,34 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // KARTU 2: PENGATURAN AKUN
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    shadowElevation = 2.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                // Jika login Google, kartu ini otomatis disembunyikan/tidak menampilkan menu apa pun agar bersih
+                if (!isGoogleLogin) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp
                     ) {
-                        Text(
-                            text = "PENGATURAN AKUN",
-                            style = AppTypography.HeadingMedium,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(color = BorderColor, thickness = 1.dp)
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "PENGATURAN AKUN",
+                                style = AppTypography.HeadingMedium,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            HorizontalDivider(color = BorderColor, thickness = 1.dp)
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                        ProfileMenuItem(title = "Ganti Email Google", onClick = onGantiEmailClicked) // 👈 Diseragamkan
-                        ProfileMenuItem(title = "Ganti Nomor Handphone", onClick = onGantiNoHpClicked)
-                        ProfileMenuItem(title = "Ganti Password", onClick = onGantiPasswordClicked)
+                            // Menu khusus Akun Manual
+                            ProfileMenuItem(title = "Ganti Email Akun", onClick = onGantiEmailClicked)
+                            ProfileMenuItem(title = "Ganti Password", onClick = onGantiPasswordClicked)
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
                 // KARTU 3: BANTUAN & PANDUAN
                 Surface(

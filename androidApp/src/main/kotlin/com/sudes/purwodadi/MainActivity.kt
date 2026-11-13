@@ -309,8 +309,8 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "login"
                                     tabHistory.clear()
                                 },
-                                onGantiEmailClicked = { currentScreen = "ganti_email" }, // 👈 Diseragamkan
-                                onGantiNoHpClicked = { currentScreen = "ganti_nohp" },
+                                onGantiEmailClicked = { currentScreen = "ganti_email" },
+                                // onGantiNoHpClicked sudah dihapus
                                 onGantiPasswordClicked = { currentScreen = "ganti_password" },
                                 onVideoTutorialClicked = { currentScreen = "video_tutorial" },
                                 onBantuanFaqClicked = { currentScreen = "bantuan_faq" },
@@ -337,11 +337,11 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        "ganti_email" -> GantiEmailScreen( // 👈 Diseragamkan menjadi ganti_email
+                        "ganti_email" -> GantiEmailScreen(
                             onBackClicked = { currentScreen = "profile" },
                             onSaveSuccess = { currentScreen = "profile" }
                         )
-                        "ganti_nohp" -> GantiNoHpScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
+                        // "ganti_nohp" sudah dihapus total dari sini
                         "ganti_password" -> GantiPasswordScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
                         "video_tutorial" -> VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
                         "bantuan_faq" -> BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })

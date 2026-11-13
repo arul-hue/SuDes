@@ -37,38 +37,9 @@ fun RegisterScreen(
     val isAnyLoading = isLoading || viewModelLoading
     val errorMessage by authViewModel.errorMessage.collectAsState()
 
-    // ==========================================
-    // SAFETY NET: Mencegah Loading Stuck Saat Back Kilat
-    // ==========================================
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    var clickTime by remember { mutableStateOf(0L) }
-
-    // Simpan waktu saat tombol Google diklik (Anda bisa panggil ini atau catat otomatis)
-    // Atau kita deteksi berdasarkan berapa lama loading menyala:
-    DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                // Jika aplikasi kembali aktif dan loading tersangkut LEBIH DARI 1.5 DETIK
-                // (artinya benar-benar stuck akibat back kilat), baru matikan paksa.
-                // Jika baru beberapa milidetik (proses normal Continue as), biarkan tetap loading!
-                if (authViewModel.isLoading.value) {
-                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                        if (authViewModel.isLoading.value) {
-                            authViewModel.setLoading(false)
-                        }
-                    }, 1500) // Jeda 1.5 detik agar proses "Continue as" tidak terganggu
-                }
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     var namaLengkap by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var nomorHp by remember { mutableStateOf("") }
+    // Variabel nomorHp dihapus di sini
     var password by remember { mutableStateOf("") }
     var konfirmasiPassword by remember { mutableStateOf("") }
 
@@ -90,9 +61,6 @@ fun RegisterScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ==========================================
-            // HEADER (Bukan Card, Menempel di Atas Layar)
-            // ==========================================
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = GreenDesaPrimary
@@ -103,7 +71,6 @@ fun RegisterScreen(
                         .padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Tombol Panah Kembali ke Login
                     IconButton(
                         onClick = onBackToLoginClicked,
                         modifier = Modifier.size(40.dp)
@@ -131,9 +98,6 @@ fun RegisterScreen(
                 }
             }
 
-            // ==========================================
-            // BAGIAN FORM / DATA DIBUNGKUS DALAM CARD
-            // ==========================================
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -153,7 +117,6 @@ fun RegisterScreen(
                             .fillMaxWidth()
                             .padding(20.dp)
                     ) {
-                        // Tombol Cepat dengan Google
                         OutlinedButton(
                             onClick = onGoogleRegisterClicked,
                             enabled = !isAnyLoading,
@@ -185,7 +148,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Pembatas
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -215,12 +177,7 @@ fun RegisterScreen(
                             placeholder = "Masukkan email Anda"
                         )
 
-                        RegisterField(
-                            label = "Nomor HP / WhatsApp",
-                            value = nomorHp,
-                            onValueChange = { nomorHp = it },
-                            placeholder = "Contoh: 081234567890"
-                        )
+                        // FIELD NOMOR HP / WHATSAPP DIHAPUS DARI SINI
 
                         RegisterField(
                             label = "Kata Sandi",
@@ -244,11 +201,10 @@ fun RegisterScreen(
 
                         if (errorMessage != null) {
                             Spacer(modifier = Modifier.height(12.dp))
-                            // Kotak peringatan merah lembut agar sangat jelas terlihat
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(10.dp),
-                                color = Color(0xFFFEF2F2), // Merah muda sangat lembut
+                                color = Color(0xFFFEF2F2),
                                 border = BorderStroke(1.dp, Color(0xFFFCA5A5))
                             ) {
                                 Row(
@@ -277,13 +233,12 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Tombol Daftar Sekarang
                         Button(
                             onClick = {
                                 authViewModel.registerUser(
                                     namaLengkap = namaLengkap,
                                     email = email,
-                                    nomorHp = nomorHp,
+                                    // parameter nomorHp dihapus
                                     password = password,
                                     konfirmasiPassword = konfirmasiPassword,
                                     onSuccess = {
@@ -313,7 +268,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Tautan Kembali ke Login
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
@@ -340,23 +294,17 @@ fun RegisterScreen(
             }
         }
 
-        // OVERLAY LOADING (Memblokir semua sentuhan/klik agar tidak tembus ke bawah)
         if (isAnyLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
                     .clickable(
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        interactionSource = remember { MutableInteractionSource() },
                         indication = null
-                    ) {
-                        // Kotak ini sengaja dikosongkan agar sentuhan tertahan di sini
-                        // dan tidak menembus ke tombol form di bawahnya
-                    },
+                    ) {},
                 contentAlignment = Alignment.Center
             ) {
-                // Background kotak putih (Surface) telah dihapus di sini,
-                // sehingga CircularProgressIndicator langsung tampil bersih di tengah layar
                 CircularProgressIndicator(
                     color = GreenDesaPrimary,
                     modifier = Modifier.size(50.dp)
@@ -364,7 +312,6 @@ fun RegisterScreen(
             }
         }
 
-        // POPUP SUKSES PENDAFTARAN
         if (showSuccessDialog) {
             Box(
                 modifier = Modifier

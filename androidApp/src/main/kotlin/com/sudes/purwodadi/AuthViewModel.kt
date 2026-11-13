@@ -39,12 +39,12 @@ class AuthViewModel : ViewModel() {
     fun registerUser(
         namaLengkap: String,
         email: String,
-        nomorHp: String,
+        // parameter nomorHp dihapus dari sini
         password: String,
         konfirmasiPassword: String,
         onSuccess: () -> Unit
     ) {
-        if (namaLengkap.isBlank() || email.isBlank() || nomorHp.isBlank() || password.isBlank()) {
+        if (namaLengkap.isBlank() || email.isBlank() || password.isBlank()) {
             _errorMessage.value = "Semua kolom wajib diisi!"
             return
         }
@@ -62,29 +62,27 @@ class AuthViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
 
-        // 1. Daftarkan akun ke Firebase Authentication
         auth.createUserWithEmailAndPassword(email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val firebaseUser = auth.currentUser
                     val userId = firebaseUser?.uid ?: ""
 
-                    // 2. Kirim Email Verifikasi ke email yang didaftarkan
                     firebaseUser?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
                         if (verificationTask.isSuccessful) {
-                            // 3. Simpan profil tambahan warga ke Cloud Firestore
+                            // Data Firestore tanpa nomorHp
                             val userData = hashMapOf(
                                 "uid" to userId,
                                 "namaLengkap" to namaLengkap,
                                 "email" to email,
-                                "nomorHp" to nomorHp,
+                                // "nomorHp" dihapus
                                 "role" to "warga",
-                                "nik" to "-",
-                                "tempatTanggalLahir" to "-",
-                                "pekerjaan" to "-",
-                                "agama" to "-",
-                                "statusPerkawinan" to "-",
-                                "alamatLengkap" to "-",
+                                "nik" to "",
+                                "tempatTanggalLahir" to "",
+                                "pekerjaan" to "",
+                                "agama" to "",
+                                "statusPerkawinan" to "",
+                                "alamatLengkap" to "",
                                 "createdAt" to com.google.firebase.Timestamp.now()
                             )
 
@@ -92,7 +90,6 @@ class AuthViewModel : ViewModel() {
                                 .set(userData)
                                 .addOnSuccessListener {
                                     _isLoading.value = false
-                                    // Logout sementara agar user wajib verifikasi email dulu sebelum login
                                     auth.signOut()
                                     onSuccess()
                                 }
