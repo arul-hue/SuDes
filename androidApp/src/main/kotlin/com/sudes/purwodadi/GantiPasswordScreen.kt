@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -18,11 +20,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.sudes.purwodadi.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,20 +37,25 @@ fun GantiPasswordScreen(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: () -> Unit = {}
 ) {
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val context = LocalContext.current
+
     var passwordSaatIni by remember { mutableStateOf("") }
     var passwordBaru by remember { mutableStateOf("") }
     var konfirmasiPassword by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSavedSuccess by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
     BackHandler {
         if (isSavedSuccess) {
-            // Jika pop-up sukses sedang tampil, tutup dan kembali ke profil
             isSavedSuccess = false
             onSaveSuccess()
         } else {
-            // Jika tidak ada pop-up, kembali ke halaman profil
             onBackClicked()
         }
     }
@@ -101,7 +112,7 @@ fun GantiPasswordScreen(
                 label = "Password Baru",
                 value = passwordBaru,
                 onValueChange = { passwordBaru = it },
-                placeholder = "Minimal 8 karakter"
+                placeholder = "Minimal 6 karakter"
             )
 
             // Field 3: Konfirmasi Password Baru
@@ -112,7 +123,38 @@ fun GantiPasswordScreen(
                 placeholder = "Masukkan ulang password baru"
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            // Pesan Error jika ada kendala validasi / firebase
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFFFEF2F2),
+                    border = BorderStroke(1.dp, Color(0xFFFCA5A5))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Peringatan",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.error,
+                            style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Kotak Tips Keamanan
             Surface(
@@ -140,23 +182,72 @@ fun GantiPasswordScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Tombol Simpan Password Baru
+            // Tombol Simpan Password Baru dengan Integrasi Firebase Auth
             Button(
                 onClick = {
-                    if (passwordSaatIni.isNotBlank() && passwordBaru.isNotBlank() && passwordBaru == konfirmasiPassword) {
-                        isSavedSuccess = true
+                    errorMessage = null
+
+                    if (passwordSaatIni.isBlank() || passwordBaru.isBlank() || konfirmasiPassword.isBlank()) {
+                        errorMessage = "Semua kolom wajib diisi!"
+                        return@Button
                     }
+
+                    if (passwordBaru.length < 6) {
+                        errorMessage = "Password baru minimal harus 6 karakter!"
+                        return@Button
+                    }
+
+                    if (passwordBaru != konfirmasiPassword) {
+                        errorMessage = "Konfirmasi password baru tidak cocok!"
+                        return@Button
+                    }
+
+                    val email = currentUser?.email
+                    if (email == null) {
+                        errorMessage = "Sesi pengguna tidak valid. Silakan masuk ulang."
+                        return@Button
+                    }
+
+                    isLoading = true
+                    val credential = EmailAuthProvider.getCredential(email, passwordSaatIni)
+
+                    // 1. Re-autentikasi user dengan password lama untuk verifikasi keamanan
+                    currentUser.reauthenticate(credential)
+                        .addOnSuccessListener {
+                            // 2. Jika password lama benar, update ke password baru
+                            currentUser.updatePassword(passwordBaru)
+                                .addOnSuccessListener {
+                                    isLoading = false
+                                    isSavedSuccess = true
+                                }
+                                .addOnFailureListener { e ->
+                                    isLoading = false
+                                    errorMessage = "Gagal memperbarui password: ${e.localizedMessage}"
+                                }
+                        }
+                        .addOnFailureListener {
+                            isLoading = false
+                            errorMessage = "Password saat ini yang Anda masukkan salah!"
+                        }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
             ) {
-                Text(
-                    text = "Simpan Password Baru",
-                    style = AppTypography.ButtonText
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Simpan Password Baru",
+                        style = AppTypography.ButtonText
+                    )
+                }
             }
         }
     }
@@ -233,7 +324,6 @@ fun PasswordFormTextField(
     onValueChange: (String) -> Unit,
     placeholder: String
 ) {
-    // State lokal untuk mengatur apakah password sedang disembunyikan atau ditampilkan
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(bottom = 14.dp)) {
@@ -254,10 +344,8 @@ fun PasswordFormTextField(
                 )
             },
             textStyle = AppTypography.BodyRegular.copy(color = TextPrimary),
-            // Mengatur visibilitas teks berdasarkan state passwordVisible
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            // Menambahkan ikon mata di bagian ujung kanan text field
             trailingIcon = {
                 val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 val description = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"

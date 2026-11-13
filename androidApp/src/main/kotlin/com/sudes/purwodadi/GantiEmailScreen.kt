@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.*
@@ -46,9 +47,8 @@ fun GantiEmailScreen(
     var emailSaatIni by remember { mutableStateOf(currentUser?.email ?: "") }
     var emailBaru by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var showSuccessDialog by remember { mutableStateOf(false) }
-
-    // 💡 State untuk menampilkan pop-up konfirmasi logout
     var showLogoutConfirmDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
@@ -152,7 +152,6 @@ fun GantiEmailScreen(
                         style = AppTypography.LabelForm,
                         color = TextPrimary
                     )
-                    // Tombol yang memunculkan pop-up konfirmasi
                     TextButton(
                         onClick = { showLogoutConfirmDialog = true },
                         contentPadding = PaddingValues(0.dp)
@@ -202,7 +201,38 @@ fun GantiEmailScreen(
                     keyboardType = KeyboardType.Email
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // Kotak Peringatan Error (Merah) jika terjadi kesalahan input
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEF2F2),
+                        border = BorderStroke(1.dp, Color(0xFFFCA5A5))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "Peringatan",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = errorMessage ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -229,29 +259,43 @@ fun GantiEmailScreen(
 
                 Button(
                     onClick = {
+                        errorMessage = null
+
                         if (emailBaru.isBlank()) {
-                            Toast.makeText(context, "Email baru tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                            errorMessage = "Email baru tidak boleh kosong!"
+                            return@Button
+                        }
+
+                        if (emailBaru.trim() == emailSaatIni.trim()) {
+                            errorMessage = "Email baru tidak boleh sama dengan email saat ini!"
                             return@Button
                         }
 
                         isLoading = true
-                        currentUser?.verifyBeforeUpdateEmail(emailBaru)
+                        currentUser?.verifyBeforeUpdateEmail(emailBaru.trim())
                             ?.addOnSuccessListener {
                                 val userId = currentUser.uid
                                 FirebaseFirestore.getInstance().collection("users").document(userId)
-                                    .update("email", emailBaru)
+                                    .update("email", emailBaru.trim())
                                     .addOnSuccessListener {
                                         isLoading = false
                                         showSuccessDialog = true
                                     }
                                     .addOnFailureListener { e ->
                                         isLoading = false
-                                        Toast.makeText(context, "Gagal memperbarui database: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                                        errorMessage = "Gagal memperbarui database: ${e.localizedMessage}"
                                     }
                             }
                             ?.addOnFailureListener { e ->
                                 isLoading = false
-                                Toast.makeText(context, "Gagal mengubah email: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                errorMessage = when {
+                                    e.localizedMessage?.contains("badly formatted", ignoreCase = true) == true ->
+                                        "Format penulisan email salah atau tidak valid."
+                                    e.localizedMessage?.contains("already in use", ignoreCase = true) == true ->
+                                        "Email ini sudah digunakan oleh akun lain."
+                                    else ->
+                                        "Gagal mengubah email: ${e.localizedMessage}"
+                                }
                             }
                     },
                     enabled = !isLoading,
@@ -274,7 +318,6 @@ fun GantiEmailScreen(
         }
     }
 
-    // 💡 POP-UP KONFIRMASI (ALERT DIALOG) SEBELUM LOGOUT
     if (showLogoutConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirmDialog = false },
