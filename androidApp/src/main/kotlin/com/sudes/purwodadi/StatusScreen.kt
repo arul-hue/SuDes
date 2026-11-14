@@ -22,10 +22,10 @@ import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun StatusScreen(
-    listPengajuan: List<PengajuanItem> = emptyList(), // 👈 Menerima list data real-time dari MainActivity
+    listPengajuan: List<PengajuanItem> = emptyList(), // Menerima list data real-time dari MainActivity
     onTabSelected: (Int) -> Unit = {},
-    onDetailClicked: (PengajuanItem) -> Unit = {},    // 👈 Mengirimkan objek PengajuanItem lengkap
-    onResubmitClicked: (String) -> Unit = {}
+    onDetailClicked: (PengajuanItem) -> Unit = {},    // Mengirimkan objek PengajuanItem lengkap
+    onResubmitClicked: (PengajuanItem) -> Unit = {}   // 👈 Diperbaiki menerima PengajuanItem secara utuh
 ) {
     var selectedTab by remember { mutableStateOf(1) } // Tab Status aktif di indeks 1
     var searchQuery by remember { mutableStateOf("") }
@@ -214,7 +214,7 @@ fun StatusScreen(
                         PengajuanCard(
                             item = item,
                             onDetailClicked = { onDetailClicked(item) },
-                            onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
+                            onResubmitClicked = { onResubmitClicked(item) } // 👈 Mengirimkan objek 'item' secara utuh
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }

@@ -17,9 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
-// Catatan: ModelPengajuan dan StatusPengajuan menggunakan ModelPengajuan.kt terpusat
-// untuk menghindari error redeclaration.
-
 @Composable
 fun AdminDashboardScreen(
     listPengajuan: List<PengajuanItem> = emptyList(), // 👈 Menerima data real-time dari MainActivity

@@ -57,30 +57,31 @@ fun SuratUsahaScreen(
     initialStatusPerkawinan: String = "",
     initialPekerjaan: String = "",
     initialAlamat: String = "",
+    existingItem: PengajuanItem? = null,
     onBackClicked: () -> Unit = {},
     onSubmitPengajuan: (PengajuanItem) -> Unit = {}
 ) {
     val context = LocalContext.current
 
-    // State Form Data Pelaku Usaha
-    var namaLengkap by remember { mutableStateOf("") }
-    var nik by remember { mutableStateOf("") }
-    var tempatTanggalLahir by remember { mutableStateOf("") }
-    var jenisKelamin by remember { mutableStateOf("") }
-    var agama by remember { mutableStateOf("") }
+    // State Form Data Pelaku Usaha (Diisi otomatis jika existingItem tersedia)
+    var namaLengkap by remember { mutableStateOf(existingItem?.namaPemohon ?: "") }
+    var nik by remember { mutableStateOf(existingItem?.nik ?: "") }
+    var tempatTanggalLahir by remember { mutableStateOf(existingItem?.tempatTanggalLahir ?: "") }
+    var jenisKelamin by remember { mutableStateOf(existingItem?.jenisKelamin ?: "") }
+    var agama by remember { mutableStateOf(existingItem?.agama ?: "") }
     var statusPerkawinan by remember { mutableStateOf("") }
-    var pekerjaan by remember { mutableStateOf("") }
-    var alamatLengkap by remember { mutableStateOf("") }
+    var pekerjaan by remember { mutableStateOf(existingItem?.pekerjaan ?: "") }
+    var alamatLengkap by remember { mutableStateOf(existingItem?.alamatLengkap ?: "") }
 
     // State untuk toggle tombol Isi Otomatis dari Profil
-    var isAutoFilled by remember { mutableStateOf(false) }
+    var isAutoFilled by remember { mutableStateOf(existingItem != null) }
 
-    // State Detail Usaha
-    var namaUsaha by remember { mutableStateOf("") }
-    var lokasiUsaha by remember { mutableStateOf("") }
+    // State Detail Usaha (Diisi otomatis jika existingItem tersedia)
+    var namaUsaha by remember { mutableStateOf(existingItem?.namaUsaha ?: "") }
+    var lokasiUsaha by remember { mutableStateOf(existingItem?.lokasiUsaha ?: "") }
 
     // State untuk Lampiran Berkas / Foto Surat Pengantar RT
-    var pengantarUri by remember { mutableStateOf<Uri?>(null) }
+    var pengantarUri by remember { mutableStateOf<Uri?>(existingItem?.pengantarUri?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
     // State untuk Dialog Pilihan Sumber Gambar (Kamera vs Galeri) & Preview Gambar
@@ -134,6 +135,7 @@ fun SuratUsahaScreen(
                 isSubmittedSuccess = false
                 onSubmitPengajuan(
                     createPengajuanItem(
+                        existingId = existingItem?.id,
                         nama = namaLengkap,
                         nik = nik,
                         ttl = tempatTanggalLahir,
@@ -195,6 +197,36 @@ fun SuratUsahaScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
+            if (existingItem != null) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFFEF2F2),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDC2626).copy(alpha = 0.4f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Catatan Penolakan dari Admin:",
+                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFFDC2626)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = existingItem.pesanStatus,
+                            style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
+                            color = Color(0xFF991B1B)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Silakan perbaiki data di bawah ini, lalu kirimkan kembali pengajuan Anda.",
+                            style = AppTypography.Caption,
+                            color = TextPrimary
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // TOMBOL ISI OTOMATIS DARI PROFIL
             Surface(
                 onClick = {
@@ -699,6 +731,7 @@ fun SuratUsahaScreen(
                         isSubmittedSuccess = false
                         onSubmitPengajuan(
                             createPengajuanItem(
+                                existingId = existingItem?.id,
                                 nama = namaLengkap,
                                 nik = nik,
                                 ttl = tempatTanggalLahir,
@@ -723,8 +756,9 @@ fun SuratUsahaScreen(
     }
 }
 
-// Fungsi bantu pembuat objek PengajuanItem
+// Fungsi bantu pembuat objek PengajuanItem (Lengkap dengan seluruh data form)
 private fun createPengajuanItem(
+    existingId: String? = null,
     nama: String,
     nik: String,
     ttl: String,
@@ -737,7 +771,7 @@ private fun createPengajuanItem(
     uri: Uri?
 ): PengajuanItem {
     return PengajuanItem(
-        id = System.currentTimeMillis().toString(),
+        id = existingId ?: System.currentTimeMillis().toString(),
         jenisSurat = "Surat Keterangan Usaha",
         namaPemohon = nama.ifBlank { "Warga Pemohon" },
         tanggal = getUsahaTodayFormatted(),

@@ -1,5 +1,6 @@
 package com.sudes.purwodadi
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
@@ -28,25 +30,18 @@ data class DetailFieldItem(
 
 @Composable
 fun DetailPengajuanScreen(
-    jenisSurat: String = "Surat Keterangan Domisili (SKD)",
+    jenisSurat: String = "Surat Keterangan Usaha",
     status: StatusPengajuan = StatusPengajuan.PROSES,
     tanggalPengajuan: String = "03 Nov 2026, 09.15 WIB",
     alasanDitolak: String? = null,
-    namaFileRt: String = "pengantar_rt03_sahal.jpg",
-    fields: List<DetailFieldItem> = listOf(
-        DetailFieldItem("Nama Lengkap", "Sahal Alfarizi"),
-        DetailFieldItem("NIK", "3501230101900001"),
-        DetailFieldItem("Tempat, Tanggal Lahir", "Bandar Lampung, 01 Januari 1990"),
-        DetailFieldItem("Jenis Kelamin", "Laki-laki"),
-        DetailFieldItem("Agama", "Islam"),
-        DetailFieldItem("Pekerjaan", "Wiraswasta"),
-        DetailFieldItem("Alamat Lengkap", "Jl. Melati No. 12, RT 03/RW 05, Desa Purwodadi Simpang, Kec. Tanjung Bintang"),
-        DetailFieldItem("Alamat Tempat Tinggal Saat Ini", "Dusun II RT 03, Purwodadi Simpang, Kec. Tanjung Bintang, Lampung Selatan")
-    ),
+    namaFileRt: String = "pengantar_rt.jpg",
+    pengantarUriString: String = "", // 👈 Menangkap URI file asli yang diunggah warga
+    fields: List<DetailFieldItem> = emptyList(),
     onBackClicked: () -> Unit = {},
     onResubmitClicked: (String) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
+    var showImagePreviewDialog by remember { mutableStateOf(false) }
 
     BackHandler {
         onBackClicked()
@@ -152,7 +147,7 @@ fun DetailPengajuanScreen(
                         StatusPengajuan.DITOLAK -> {
                             TimelineStepItem(
                                 title = "1. Diproses — Berkas diterima perangkat desa",
-                                date = "28 Oktober 2026, 09.00 WIB",
+                                date = tanggalPengajuan,
                                 isCompleted = true,
                                 isProcess = false,
                                 showLine = true
@@ -196,7 +191,7 @@ fun DetailPengajuanScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 2: DATA YANG ANDA INPUTKAN
+            // KARTU 2: DATA YANG DIINPUTKAN USER (TERMASUK DETAIL USAHA)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -217,8 +212,16 @@ fun DetailPengajuanScreen(
                     HorizontalDivider(color = BorderColor, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    fields.forEach { field ->
-                        DetailItemRow(label = field.label, value = field.value)
+                    if (fields.isEmpty()) {
+                        Text(
+                            text = "Tidak ada data formulir.",
+                            style = AppTypography.BodyRegular,
+                            color = TextSecondary
+                        )
+                    } else {
+                        fields.forEach { field ->
+                            DetailItemRow(label = field.label, value = field.value)
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -251,17 +254,19 @@ fun DetailPengajuanScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = namaFileRt,
+                                    text = if (pengantarUriString.isNotBlank()) "pengantar_rt_warga.jpg" else "Tidak ada lampiran",
                                     style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
                                     color = TextPrimary
                                 )
                             }
-                            TextButton(onClick = { }) {
-                                Text(
-                                    text = "Lihat Foto",
-                                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
-                                    color = GreenDesaPrimary
-                                )
+                            if (pengantarUriString.isNotBlank()) {
+                                TextButton(onClick = { showImagePreviewDialog = true }) {
+                                    Text(
+                                        text = "Lihat Foto",
+                                        style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                                        color = GreenDesaPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -309,6 +314,62 @@ fun DetailPengajuanScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
+
+    // DIALOG PRATINJAU FOTO ASLI PENGANTAR RT DARI WARGA
+    if (showImagePreviewDialog && pengantarUriString.isNotBlank()) {
+        AlertDialog(
+            onDismissRequest = { showImagePreviewDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = "Pratinjau Surat Pengantar RT",
+                    style = AppTypography.HeadingMedium,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = GrayBackground,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            coil.compose.AsyncImage(
+                                model = Uri.parse(pengantarUriString),
+                                contentDescription = "Pratinjau Surat Pengantar RT",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showImagePreviewDialog = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                ) {
+                    Text(text = "Tutup", style = AppTypography.ButtonText)
+                }
+            },
+            dismissButton = {}
+        )
+    }
 }
 
 @Composable
@@ -338,16 +399,16 @@ fun TimelineStepItem(
     showLine: Boolean
 ) {
     val dotColor = when {
-        isRejected -> RedRejectedText       // Menggunakan root token merah
-        isProcess -> OrangeProcessText      // Menggunakan root token oranye proses
-        isCompleted -> GreenDesaPrimary     // Menggunakan root token hijau utama
-        else -> Color(0xFFCBD5E1)           // Netral abu-abu
+        isRejected -> RedRejectedText
+        isProcess -> OrangeProcessText
+        isCompleted -> GreenDesaPrimary
+        else -> Color(0xFFCBD5E1)
     }
 
     val textColor = when {
-        isRejected -> RedRejectedText       // Menggunakan root token merah
-        isProcess -> OrangeProcessText      // Menggunakan root token oranye proses
-        isCompleted -> GreenDesaPrimary     // Menggunakan root token hijau utama
+        isRejected -> RedRejectedText
+        isProcess -> OrangeProcessText
+        isCompleted -> GreenDesaPrimary
         else -> TextSecondary
     }
 

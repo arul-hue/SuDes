@@ -33,6 +33,22 @@ class MainActivity : ComponentActivity() {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
+    // Fungsi Helper untuk Menyimpan Sesi Role Admin/Warga di Lokal HP
+    private fun saveUserRole(role: String) {
+        val sharedPreferences = getSharedPreferences("SudesPrefs", MODE_PRIVATE)
+        sharedPreferences.edit().putString("USER_ROLE", role).apply()
+    }
+
+    private fun getSavedUserRole(): String {
+        val sharedPreferences = getSharedPreferences("SudesPrefs", MODE_PRIVATE)
+        return sharedPreferences.getString("USER_ROLE", "warga") ?: "warga"
+    }
+
+    private fun clearUserRole() {
+        val sharedPreferences = getSharedPreferences("SudesPrefs", MODE_PRIVATE)
+        sharedPreferences.edit().remove("USER_ROLE").apply()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -53,8 +69,75 @@ class MainActivity : ComponentActivity() {
 
                 var showIncompleteProfileDialog by remember { mutableStateOf(false) }
 
-                // SINKRONISASI REAL-TIME: Daftar Pengajuan Surat Warga & Admin
+                // SINKRONISASI REAL-TIME AMAN & SESUAI MODEL PENGAJUAN
                 val listPengajuan = remember { mutableStateListOf<PengajuanItem>() }
+
+                LaunchedEffect(Unit) {
+                    firestore.collection("pengajuan")
+                        .addSnapshotListener { snapshot, e ->
+                            if (e != null) return@addSnapshotListener
+                            if (snapshot != null) {
+                                val tempList = mutableListOf<PengajuanItem>()
+                                for (doc in snapshot.documents) {
+                                    try {
+                                        // Menggunakan model PengajuanItem secara langsung dengan aman
+                                        val item = doc.toObject(PengajuanItem::class.java)
+                                        if (item != null) {
+                                            val finalItem = if (item.id.isBlank()) item.copy(id = doc.id) else item
+                                            tempList.add(finalItem)
+                                        }
+                                    } catch (ex: Exception) {
+                                        // Fallback manual jika deserialisasi gagal, ambil seluruh atribut dokumen secara lengkap
+                                        try {
+                                            val id = doc.getString("id") ?: doc.id
+                                            val jenisSurat = doc.getString("jenisSurat") ?: "Surat Keterangan Usaha"
+                                            val namaPemohon = doc.getString("namaPemohon") ?: "Warga"
+                                            val tanggal = doc.getString("tanggal") ?: ""
+                                            val statusStr = doc.getString("status") ?: "PROSES"
+                                            val status = try { StatusPengajuan.valueOf(statusStr) } catch (err: Exception) { StatusPengajuan.PROSES }
+                                            val pesanStatus = doc.getString("pesanStatus") ?: "Pengajuan Anda sedang diproses."
+
+                                            // Menangkap atribut lengkap agar tidak kosong di sisi admin/detail
+                                            val nik = doc.getString("nik") ?: ""
+                                            val tempatTanggalLahir = doc.getString("tempatTanggalLahir") ?: ""
+                                            val jenisKelamin = doc.getString("jenisKelamin") ?: ""
+                                            val agama = doc.getString("agama") ?: ""
+                                            val pekerjaan = doc.getString("pekerjaan") ?: ""
+                                            val alamatLengkap = doc.getString("alamatLengkap") ?: ""
+                                            val namaUsaha = doc.getString("namaUsaha") ?: ""
+                                            val lokasiUsaha = doc.getString("lokasiUsaha") ?: ""
+                                            val pengantarUri = doc.getString("pengantarUri") ?: ""
+                                            val nomorSurat = doc.getString("nomorSurat") ?: "-"
+
+                                            val fallbackItem = PengajuanItem(
+                                                id = id,
+                                                jenisSurat = jenisSurat,
+                                                namaPemohon = namaPemohon,
+                                                tanggal = tanggal,
+                                                status = status,
+                                                pesanStatus = pesanStatus,
+                                                nik = nik,
+                                                tempatTanggalLahir = tempatTanggalLahir,
+                                                jenisKelamin = jenisKelamin,
+                                                agama = agama,
+                                                pekerjaan = pekerjaan,
+                                                alamatLengkap = alamatLengkap,
+                                                namaUsaha = namaUsaha,
+                                                lokasiUsaha = lokasiUsaha,
+                                                pengantarUri = pengantarUri,
+                                                nomorSurat = nomorSurat
+                                            )
+                                            tempList.add(fallbackItem)
+                                        } catch (innerEx: Exception) {
+                                            // Abaikan dokumen yang benar-benar korup
+                                        }
+                                    }
+                                }
+                                listPengajuan.clear()
+                                listPengajuan.addAll(tempList)
+                            }
+                        }
+                }
 
                 val fetchUserData = {
                     val userId = auth.currentUser?.uid
@@ -73,6 +156,7 @@ class MainActivity : ComponentActivity() {
                                     alamatUser = document.getString("alamatLengkap")?.takeIf { it != "-" } ?: ""
 
                                     roleUser = document.getString("role") ?: "warga"
+                                    saveUserRole(roleUser)
 
                                     val isNikEmpty = nikUser.isBlank()
                                     val isTglEmpty = tempatTglLahirUser.isBlank()
@@ -88,8 +172,10 @@ class MainActivity : ComponentActivity() {
                 val tabHistory = remember { mutableStateListOf("home") }
                 var backPressedTime by remember { mutableStateOf(0L) }
 
-                // State untuk layar detail pengajuan
-                var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Domisili") }
+                var selectedPengajuanItem by remember { mutableStateOf<PengajuanItem?>(null) }
+                var itemYangAkanDiedit by remember { mutableStateOf<PengajuanItem?>(null) }
+
+                var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Usaha") }
                 var selectedStatusSurat by remember { mutableStateOf(StatusPengajuan.PROSES) }
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
                 var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt.jpg") }
@@ -113,7 +199,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1) // 👈 Diperbaiki di sini
+                            tabHistory.removeAt(tabHistory.size - 1)
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -134,7 +220,12 @@ class MainActivity : ComponentActivity() {
                                 onTimeout = {
                                     if (auth.currentUser != null) {
                                         fetchUserData()
-                                        currentScreen = "home"
+                                        val savedRole = getSavedUserRole()
+                                        if (savedRole == "admin") {
+                                            currentScreen = "admin_dashboard"
+                                        } else {
+                                            currentScreen = "home"
+                                        }
                                     } else {
                                         currentScreen = "login"
                                     }
@@ -149,15 +240,22 @@ class MainActivity : ComponentActivity() {
                                     handleGoogleSignIn(
                                         onSuccess = {
                                             fetchUserData()
-                                            currentScreen = "home"
-                                            tabHistory.clear()
-                                            tabHistory.add("home")
+                                            val savedRole = getSavedUserRole()
+                                            if (savedRole == "admin") {
+                                                currentScreen = "admin_dashboard"
+                                            } else {
+                                                currentScreen = "home"
+                                                tabHistory.clear()
+                                                tabHistory.add("home")
+                                            }
                                         }
                                     )
                                 },
                                 onLoginSuccess = { role ->
                                     val cleanedRole = role.trim().lowercase()
                                     fetchUserData()
+                                    saveUserRole(cleanedRole)
+
                                     if (cleanedRole == "admin") {
                                         currentScreen = "admin_dashboard"
                                         Toast.makeText(context, "Berhasil masuk sebagai Admin!", Toast.LENGTH_SHORT).show()
@@ -210,39 +308,49 @@ class MainActivity : ComponentActivity() {
                         }
                         "admin_dashboard" -> {
                             AdminDashboardScreen(
-                                listPengajuan = listPengajuan, // 👈 Terhubung real-time
+                                listPengajuan = listPengajuan,
                                 onDetailClicked = { pengajuanItem ->
+                                    selectedPengajuanItem = pengajuanItem
                                     selectedJenisSurat = pengajuanItem.jenisSurat
                                     currentScreen = "admin_edit_pengajuan"
                                 },
                                 onSelesaikanClicked = { pengajuanItem ->
+                                    selectedPengajuanItem = pengajuanItem
                                     selectedJenisSurat = pengajuanItem.jenisSurat
                                     currentScreen = "admin_edit_pengajuan"
                                 },
                                 onLogoutClicked = {
                                     auth.signOut()
+                                    clearUserRole()
                                     currentScreen = "login"
                                     tabHistory.clear()
                                 }
                             )
                         }
                         "admin_edit_pengajuan" -> {
-                            AdminEditPengajuanScreen(
-                                jenisSurat = selectedJenisSurat,
-                                namaPemohonAwal = namaLengkapUser,
-                                nikAwal = nikUser,
-                                ttlAwal = tempatTglLahirUser,
-                                agamaAwal = agamaUser,
-                                pekerjaanAwal = pekerjaanUser,
-                                alamatLengkapAwal = alamatUser,
-                                onBackClicked = { currentScreen = "admin_dashboard" },
-                                onSaveSuccess = { currentScreen = "admin_dashboard" }
-                            )
+                            if (selectedPengajuanItem != null) {
+                                AdminEditPengajuanScreen(
+                                    pengajuan = selectedPengajuanItem!!,
+                                    onBackClicked = { currentScreen = "admin_dashboard" },
+                                    onSaveSuccess = { updatedItem ->
+                                        firestore.collection("pengajuan").document(updatedItem.id)
+                                            .set(updatedItem)
+                                            .addOnSuccessListener {
+                                                Toast.makeText(context, "Keputusan berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                                                currentScreen = "admin_dashboard"
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Toast.makeText(context, "Gagal menyimpan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                                            }
+                                    }
+                                )
+                            }
                         }
                         "home" -> {
                             HomeScreen(
                                 namaLengkap = namaLengkapUser,
                                 onServiceSelected = { serviceName ->
+                                    itemYangAkanDiedit = null
                                     when (serviceName) {
                                         "Surat Keterangan Usaha" -> currentScreen = "surat_usaha"
                                         "Surat Keterangan Domisili" -> currentScreen = "surat_domisili"
@@ -266,7 +374,7 @@ class MainActivity : ComponentActivity() {
                         }
                         "status" -> {
                             StatusScreen(
-                                listPengajuan = listPengajuan, // 👈 Terhubung ke state list real-time
+                                listPengajuan = listPengajuan,
                                 onTabSelected = { tabIndex ->
                                     val target = when (tabIndex) {
                                         0 -> "home"
@@ -279,13 +387,35 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onDetailClicked = { pengajuanItem ->
+                                    selectedPengajuanItem = pengajuanItem
                                     selectedJenisSurat = pengajuanItem.jenisSurat
                                     selectedStatusSurat = pengajuanItem.status
                                     selectedAlasanDitolak = pengajuanItem.pesanStatus
+                                    selectedNamaFileRt = pengajuanItem.pengantarUri.ifBlank { "pengantar_rt.jpg" }
+
+                                    // DINAMIS: Susun list fields berdasarkan jenis surat yang diklik
+                                    val baseFields = mutableListOf(
+                                        DetailFieldItem("Nama Lengkap", pengajuanItem.namaPemohon),
+                                        DetailFieldItem("NIK", pengajuanItem.nik.ifBlank { "-" }),
+                                        DetailFieldItem("Tempat, Tanggal Lahir", pengajuanItem.tempatTanggalLahir.ifBlank { "-" }),
+                                        DetailFieldItem("Jenis Kelamin", pengajuanItem.jenisKelamin.ifBlank { "-" }),
+                                        DetailFieldItem("Agama", pengajuanItem.agama.ifBlank { "-" }),
+                                        DetailFieldItem("Pekerjaan", pengajuanItem.pekerjaan.ifBlank { "-" }),
+                                        DetailFieldItem("Alamat Lengkap", pengajuanItem.alamatLengkap.ifBlank { "-" })
+                                    )
+
+                                    // Jika Surat Usaha, tambahkan field khusus usaha ke tampilan detail
+                                    if (pengajuanItem.jenisSurat.contains("Usaha", ignoreCase = true)) {
+                                        baseFields.add(DetailFieldItem("Nama / Deskripsi Usaha", pengajuanItem.namaUsaha.ifBlank { "-" }))
+                                        baseFields.add(DetailFieldItem("Lokasi Usaha", pengajuanItem.lokasiUsaha.ifBlank { "-" }))
+                                    }
+
+                                    selectedFields = baseFields
                                     currentScreen = "detail_pengajuan"
                                 },
-                                onResubmitClicked = { jenisSurat ->
-                                    if (jenisSurat.contains("Usaha", ignoreCase = true)) {
+                                onResubmitClicked = { pengajuanItem ->
+                                    itemYangAkanDiedit = pengajuanItem
+                                    if (pengajuanItem.jenisSurat.contains("Usaha", ignoreCase = true)) {
                                         currentScreen = "surat_usaha"
                                     }
                                 }
@@ -295,11 +425,20 @@ class MainActivity : ComponentActivity() {
                             DetailPengajuanScreen(
                                 jenisSurat = selectedJenisSurat,
                                 status = selectedStatusSurat,
+                                tanggalPengajuan = selectedPengajuanItem?.tanggal ?: "",
                                 alasanDitolak = selectedAlasanDitolak,
-                                namaFileRt = selectedNamaFileRt,
+                                namaFileRt = if (!selectedPengajuanItem?.pengantarUri.isNullOrBlank()) "pengantar_rt_warga.jpg" else "Tidak ada lampiran",
+                                pengantarUriString = selectedPengajuanItem?.pengantarUri ?: "",
                                 fields = selectedFields,
                                 onBackClicked = { currentScreen = "status" },
-                                onResubmitClicked = { currentScreen = "surat_usaha" }
+                                onResubmitClicked = {
+                                    if (selectedPengajuanItem != null) {
+                                        itemYangAkanDiedit = selectedPengajuanItem
+                                    }
+                                    if (selectedJenisSurat.contains("Usaha", ignoreCase = true)) {
+                                        currentScreen = "surat_usaha"
+                                    }
+                                }
                             )
                         }
                         "profile" -> {
@@ -326,6 +465,7 @@ class MainActivity : ComponentActivity() {
                                 onEditClicked = { currentScreen = "edit_profile" },
                                 onLogoutClicked = {
                                     auth.signOut()
+                                    clearUserRole()
                                     currentScreen = "login"
                                     tabHistory.clear()
                                 },
@@ -360,6 +500,8 @@ class MainActivity : ComponentActivity() {
                             onBackClicked = { currentScreen = "profile" },
                             onSaveSuccess = { currentScreen = "profile" },
                             onLogoutRequested = {
+                                auth.signOut()
+                                clearUserRole()
                                 currentScreen = "login"
                                 tabHistory.clear()
                             }
@@ -369,20 +511,33 @@ class MainActivity : ComponentActivity() {
                         "bantuan_faq" -> BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })
                         "tentang_aplikasi" -> TentangAplikasiScreen(onBackClicked = { currentScreen = "profile" })
 
-                        // SINKRONISASI SURAT USAHA KE STATUS SCREEN & ADMIN DASHBOARD
                         "surat_usaha" -> SuratUsahaScreen(
                             initialNama = namaLengkapUser,
                             initialNik = nikUser,
                             initialTempatTgl = tempatTglLahirUser,
-                            //initialJenisKelamin = "Laki-laki",
                             initialAgama = agamaUser,
                             initialStatusPerkawinan = statusUser,
                             initialPekerjaan = pekerjaanUser,
                             initialAlamat = alamatUser,
-                            onBackClicked = { currentScreen = "home" },
+                            existingItem = itemYangAkanDiedit,
+                            onBackClicked = {
+                                itemYangAkanDiedit = null
+                                currentScreen = "home"
+                            },
                             onSubmitPengajuan = { itemBaru ->
-                                listPengajuan.add(0, itemBaru)
-                                currentScreen = "status"
+                                firestore.collection("pengajuan").document(itemBaru.id)
+                                    .set(itemBaru)
+                                    .addOnSuccessListener {
+                                        if (itemYangAkanDiedit != null && itemYangAkanDiedit!!.id != itemBaru.id) {
+                                            firestore.collection("pengajuan").document(itemYangAkanDiedit!!.id).delete()
+                                        }
+                                        itemYangAkanDiedit = null
+                                        currentScreen = "status"
+                                        Toast.makeText(context, "Pengajuan berhasil dikirim!", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(context, "Gagal mengirim: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                                    }
                             }
                         )
                         "surat_domisili" -> SuratDomisiliScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
@@ -508,9 +663,22 @@ class MainActivity : ComponentActivity() {
                         namaLengkap = googleName,
                         email = googleEmail,
                         onSuccess = {
-                            authViewModel.setLoading(false)
-                            Toast.makeText(this@MainActivity, "Berhasil masuk dengan Google!", Toast.LENGTH_SHORT).show()
-                            onSuccess()
+                            val userId = auth.currentUser?.uid
+                            if (userId != null) {
+                                firestore.collection("users").document(userId).get().addOnSuccessListener { doc ->
+                                    val role = doc.getString("role")?.trim()?.lowercase() ?: "warga"
+                                    saveUserRole(role)
+                                    authViewModel.setLoading(false)
+                                    Toast.makeText(this@MainActivity, "Berhasil masuk dengan Google!", Toast.LENGTH_SHORT).show()
+                                    onSuccess()
+                                }.addOnFailureListener {
+                                    authViewModel.setLoading(false)
+                                    onSuccess()
+                                }
+                            } else {
+                                authViewModel.setLoading(false)
+                                onSuccess()
+                            }
                         }
                     )
                 } else {

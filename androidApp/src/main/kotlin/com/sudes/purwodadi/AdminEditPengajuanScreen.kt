@@ -1,6 +1,6 @@
 package com.sudes.purwodadi
 
-import androidx.compose.animation.animateContentSize
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,41 +16,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
 @Composable
 fun AdminEditPengajuanScreen(
-    jenisSurat: String = "Surat Keterangan Domisili",
-    namaPemohonAwal: String = "Sahal Alfarizi",
-    nikAwal: String = "3501230101900001",
-    ttlAwal: String = "Bandar Lampung, 01 Januari 1990",
-    jenisKelaminAwal: String = "Laki-laki",
-    agamaAwal: String = "Islam",
-    pekerjaanAwal: String = "Wiraswasta",
-    alamatLengkapAwal: String = "Jl. Melati No. 12, RT 03/RW 05, Desa Purwodadi Simpang, Kec. Tanjung Bintang",
-    alamatTinggalAwal: String = "Dusun II RT 03, Purwodadi Simpang, Kec. Tanjung Bintang, Lampung Selatan",
-    nomorSuratAwal: String = "470 / 045 / SKD / XI / 2026",
-    namaFileRt: String = "pengantar_rt03_sahal.jpg",
+    pengajuan: PengajuanItem, // 👈 Menerima objek PengajuanItem asli dari inputan warga
     onBackClicked: () -> Unit = {},
-    onSaveSuccess: () -> Unit = {}
+    onSaveSuccess: (updatedItem: PengajuanItem) -> Unit = {}
 ) {
-    var nama by remember { mutableStateOf(namaPemohonAwal) }
-    var nik by remember { mutableStateOf(nikAwal) }
-    var ttl by remember { mutableStateOf(ttlAwal) }
-    var jenisKelamin by remember { mutableStateOf(jenisKelaminAwal) }
-    var agama by remember { mutableStateOf(agamaAwal) }
-    var pekerjaan by remember { mutableStateOf(pekerjaanAwal) }
-    var alamatLengkap by remember { mutableStateOf(alamatLengkapAwal) }
-    var alamatTinggal by remember { mutableStateOf(alamatTinggalAwal) }
-    var nomorSurat by remember { mutableStateOf(nomorSuratAwal) }
+    // Inisialisasi state form langsung dari data real yang diinput warga
+    var nama by remember { mutableStateOf(pengajuan.namaPemohon) }
+    var nik by remember { mutableStateOf(pengajuan.nik) }
+    var ttl by remember { mutableStateOf(pengajuan.tempatTanggalLahir) }
+    var jenisKelamin by remember { mutableStateOf(pengajuan.jenisKelamin) }
+    var agama by remember { mutableStateOf(pengajuan.agama) }
+    var pekerjaan by remember { mutableStateOf(pengajuan.pekerjaan) }
+    var alamatLengkap by remember { mutableStateOf(pengajuan.alamatLengkap) }
+
+    // Field khusus Detail Usaha (jika jenis surat adalah Surat Keterangan Usaha)
+    var namaUsaha by remember { mutableStateOf(pengajuan.namaUsaha) }
+    var lokasiUsaha by remember { mutableStateOf(pengajuan.lokasiUsaha) }
+
+    var nomorSurat by remember { mutableStateOf(pengajuan.nomorSurat) }
 
     // Pilihan Keputusan Kelurahan
     var isDiterima by remember { mutableStateOf(true) } // true = Diterima & Terbitkan, false = Ditolak
     var alasanDitolak by remember { mutableStateOf("") }
 
-    // Dialog Konfirmasi
+    // State Dialog Konfirmasi & Preview Foto Lampiran
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showImagePreviewDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
@@ -105,13 +102,13 @@ fun AdminEditPengajuanScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Mode Koreksi & Edit Data Pemohon:",
+                        text = "Mode Koreksi & Edit Data Pemohon (${pengajuan.jenisSurat}):",
                         style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFF92400E)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Admin dapat langsung mengubah isian jika warga mengalami salah ketik (typo) pada data di bawah.",
+                        text = "Admin dapat langsung mengubah isian di bawah ini jika warga mengalami salah ketik (typo).",
                         style = AppTypography.BodyRegular,
                         color = Color(0xFF78350F)
                     )
@@ -120,7 +117,7 @@ fun AdminEditPengajuanScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU FORMULIR EDIT DATA WARGA
+            // KARTU FORMULIR EDIT DATA WARGA (BERISI DATA ASLI DARI INPUTAN USER)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -146,7 +143,6 @@ fun AdminEditPengajuanScreen(
                     AdminEditTextField(label = "Agama", value = agama, onValueChange = { agama = it })
                     AdminEditTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it })
 
-                    // 👉 Alamat Lengkap diatur Multi-line (3-4 baris)
                     AdminEditTextField(
                         label = "Alamat Lengkap",
                         value = alamatLengkap,
@@ -156,21 +152,24 @@ fun AdminEditPengajuanScreen(
                         maxLines = 4
                     )
 
-                    // 👉 Alamat Tempat Tinggal diatur Multi-line (2-3 baris)
-                    AdminEditTextField(
-                        label = "Alamat Tempat Tinggal Saat Ini",
-                        value = alamatTinggal,
-                        onValueChange = { alamatTinggal = it },
-                        singleLine = false,
-                        minLines = 2,
-                        maxLines = 3
-                    )
+                    // Jika surat berupa Surat Keterangan Usaha, tampilkan field detail usaha milik user
+                    if (pengajuan.jenisSurat.contains("Usaha", ignoreCase = true)) {
+                        AdminEditTextField(label = "Nama / Deskripsi Usaha", value = namaUsaha, onValueChange = { namaUsaha = it })
+                        AdminEditTextField(
+                            label = "Lokasi Usaha",
+                            value = lokasiUsaha,
+                            onValueChange = { lokasiUsaha = it },
+                            singleLine = false,
+                            minLines = 2,
+                            maxLines = 3
+                        )
+                    }
 
                     AdminEditTextField(label = "Nomor Surat Resmi (Diterbitkan Admin)", value = nomorSurat, onValueChange = { nomorSurat = it })
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Surat Pengantar RT (Lampiran Warga)",
+                        text = "Surat Pengantar RT (Lampiran Asli Warga)",
                         style = AppTypography.Caption,
                         color = TextSecondary
                     )
@@ -189,26 +188,29 @@ fun AdminEditPengajuanScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                 Icon(
                                     imageVector = Icons.Default.AttachFile,
                                     contentDescription = null,
-                                    tint = TextSecondary,
+                                    tint = GreenDesaPrimary,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = namaFileRt,
+                                    text = if (pengajuan.pengantarUri.isNotBlank()) "Berkas Pengantar RT Terlampir" else "Tidak ada lampiran",
                                     style = AppTypography.BodyRegular.copy(fontWeight = FontWeight.Medium),
                                     color = TextPrimary
                                 )
                             }
-                            TextButton(onClick = { }) {
-                                Text(
-                                    text = "Lihat Foto",
-                                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
-                                    color = GreenDesaPrimary
-                                )
+
+                            if (pengajuan.pengantarUri.isNotBlank()) {
+                                TextButton(onClick = { showImagePreviewDialog = true }) {
+                                    Text(
+                                        text = "Lihat Foto",
+                                        style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                                        color = GreenDesaPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -341,24 +343,7 @@ fun AdminEditPengajuanScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TOMBOL AKSI
-            OutlinedButton(
-                onClick = { /* Pratinjau */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = GreenDesaLight),
-                border = androidx.compose.foundation.BorderStroke(1.dp, GreenDesaPrimary)
-            ) {
-                Text(
-                    text = "👁 Pratinjau Hasil Surat (Preview)",
-                    style = AppTypography.ButtonText.copy(color = GreenDesaPrimary)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
+            // TOMBOL AKSI SIMPAN
             Button(
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
@@ -393,7 +378,63 @@ fun AdminEditPengajuanScreen(
         }
     }
 
-    // DIALOG KONFIRMASI
+    // DIALOG PRATINJAU FOTO ASLI PENGANTAR RT DARI WARGA
+    if (showImagePreviewDialog && pengajuan.pengantarUri.isNotBlank()) {
+        AlertDialog(
+            onDismissRequest = { showImagePreviewDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = "Pratinjau Surat Pengantar RT",
+                    style = AppTypography.HeadingMedium,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = GrayBackground,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            coil.compose.AsyncImage(
+                                model = Uri.parse(pengajuan.pengantarUri),
+                                contentDescription = "Pratinjau Surat Pengantar RT Warga",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showImagePreviewDialog = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                ) {
+                    Text(text = "Tutup", style = AppTypography.ButtonText)
+                }
+            },
+            dismissButton = {}
+        )
+    }
+
+    // DIALOG KONFIRMASI SIMPAN
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -429,9 +470,9 @@ fun AdminEditPengajuanScreen(
             text = {
                 Text(
                     text = if (isDiterima)
-                        "Pastikan data warga dan nomor surat resmi sudah benar dan bebas typo."
+                        "Pastikan data koreksi warga dan nomor surat resmi sudah benar."
                     else
-                        "Alasan penolakan akan dikirimkan ke warga agar mereka dapat melakukan ajukan ulang.",
+                        "Alasan penolakan akan dikirimkan ke warga.",
                     style = AppTypography.BodyRegular,
                     color = TextSecondary,
                     modifier = Modifier.fillMaxWidth()
@@ -441,7 +482,22 @@ fun AdminEditPengajuanScreen(
                 Button(
                     onClick = {
                         showConfirmDialog = false
-                        onSaveSuccess()
+                        // Buat salinan objek yang diperbarui oleh admin
+                        val updatedItem = pengajuan.copy(
+                            namaPemohon = nama,
+                            nik = nik,
+                            tempatTanggalLahir = ttl,
+                            jenisKelamin = jenisKelamin,
+                            agama = agama,
+                            pekerjaan = pekerjaan,
+                            alamatLengkap = alamatLengkap,
+                            namaUsaha = namaUsaha,
+                            lokasiUsaha = lokasiUsaha,
+                            nomorSurat = nomorSurat,
+                            status = if (isDiterima) StatusPengajuan.DITERIMA else StatusPengajuan.DITOLAK,
+                            pesanStatus = if (isDiterima) "Surat telah diterbitkan oleh kelurahan." else alasanDitolak.ifBlank { "Pengajuan ditolak oleh admin." }
+                        )
+                        onSaveSuccess(updatedItem)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -463,7 +519,7 @@ fun AdminEditPengajuanScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
                 ) {
                     Text(
-                        text = if (isDiterima) "Periksa Kembali" else "Batal",
+                        text = "Batal",
                         style = AppTypography.ButtonText.copy(color = TextPrimary)
                     )
                 }
@@ -472,7 +528,7 @@ fun AdminEditPengajuanScreen(
     }
 }
 
-// Komponen AdminEditTextField (Disempurnakan: Mendukung multi-line & sharedTextStyle yang Presisi)
+// Komponen Pendukung TextField Khusus Admin
 @Composable
 fun AdminEditTextField(
     label: String,
