@@ -102,6 +102,7 @@ class MainActivity : ComponentActivity() {
                                             val tempatTanggalLahir = doc.getString("tempatTanggalLahir") ?: ""
                                             val jenisKelamin = doc.getString("jenisKelamin") ?: ""
                                             val agama = doc.getString("agama") ?: ""
+                                            val statusPerkawinan = doc.getString("statusPerkawinan") ?: "" // 👈 Ditangkap di fallback
                                             val pekerjaan = doc.getString("pekerjaan") ?: ""
                                             val alamatLengkap = doc.getString("alamatLengkap") ?: ""
                                             val namaUsaha = doc.getString("namaUsaha") ?: ""
@@ -120,6 +121,7 @@ class MainActivity : ComponentActivity() {
                                                 tempatTanggalLahir = tempatTanggalLahir,
                                                 jenisKelamin = jenisKelamin,
                                                 agama = agama,
+                                                statusPerkawinan = statusPerkawinan, // 👈 Dimasukkan ke objek fallback
                                                 pekerjaan = pekerjaan,
                                                 alamatLengkap = alamatLengkap,
                                                 namaUsaha = namaUsaha,
@@ -188,6 +190,7 @@ class MainActivity : ComponentActivity() {
                             DetailFieldItem("Tempat, Tanggal Lahir", tempatTglLahirUser),
                             DetailFieldItem("Jenis Kelamin", "Laki-laki"),
                             DetailFieldItem("Agama", agamaUser),
+                            DetailFieldItem("Status Perkawinan", statusUser),
                             DetailFieldItem("Pekerjaan", pekerjaanUser),
                             DetailFieldItem("Alamat Lengkap", alamatUser)
                         )
@@ -393,13 +396,14 @@ class MainActivity : ComponentActivity() {
                                     selectedAlasanDitolak = pengajuanItem.pesanStatus
                                     selectedNamaFileRt = pengajuanItem.pengantarUri.ifBlank { "pengantar_rt.jpg" }
 
-                                    // DINAMIS: Susun list fields berdasarkan jenis surat yang diklik
+                                    // DINAMIS: Susun list fields berdasarkan jenis surat yang diklik (Termasuk Status Perkawinan)
                                     val baseFields = mutableListOf(
                                         DetailFieldItem("Nama Lengkap", pengajuanItem.namaPemohon),
                                         DetailFieldItem("NIK", pengajuanItem.nik.ifBlank { "-" }),
                                         DetailFieldItem("Tempat, Tanggal Lahir", pengajuanItem.tempatTanggalLahir.ifBlank { "-" }),
                                         DetailFieldItem("Jenis Kelamin", pengajuanItem.jenisKelamin.ifBlank { "-" }),
                                         DetailFieldItem("Agama", pengajuanItem.agama.ifBlank { "-" }),
+                                        DetailFieldItem("Status Perkawinan", pengajuanItem.statusPerkawinan.ifBlank { "-" }), // 👈 Ditambahkan di sini
                                         DetailFieldItem("Pekerjaan", pengajuanItem.pekerjaan.ifBlank { "-" }),
                                         DetailFieldItem("Alamat Lengkap", pengajuanItem.alamatLengkap.ifBlank { "-" })
                                     )

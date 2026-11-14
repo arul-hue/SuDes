@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -63,13 +66,13 @@ fun SuratUsahaScreen(
 ) {
     val context = LocalContext.current
 
-    // State Form Data Pelaku Usaha (Diisi otomatis jika existingItem tersedia)
+    // State Form Data Pelaku Usaha (Diisi otomatis jika existingItem tersedia, termasuk statusPerkawinan)
     var namaLengkap by remember { mutableStateOf(existingItem?.namaPemohon ?: "") }
     var nik by remember { mutableStateOf(existingItem?.nik ?: "") }
     var tempatTanggalLahir by remember { mutableStateOf(existingItem?.tempatTanggalLahir ?: "") }
     var jenisKelamin by remember { mutableStateOf(existingItem?.jenisKelamin ?: "") }
     var agama by remember { mutableStateOf(existingItem?.agama ?: "") }
-    var statusPerkawinan by remember { mutableStateOf("") }
+    var statusPerkawinan by remember { mutableStateOf(existingItem?.statusPerkawinan ?: "") }
     var pekerjaan by remember { mutableStateOf(existingItem?.pekerjaan ?: "") }
     var alamatLengkap by remember { mutableStateOf(existingItem?.alamatLengkap ?: "") }
 
@@ -141,6 +144,7 @@ fun SuratUsahaScreen(
                         ttl = tempatTanggalLahir,
                         jk = jenisKelamin,
                         agama = agama,
+                        statusPerkawinan = statusPerkawinan,
                         pekerjaan = pekerjaan,
                         alamat = alamatLengkap,
                         namaUsaha = namaUsaha,
@@ -599,56 +603,58 @@ fun SuratUsahaScreen(
         )
     }
 
-    // 0.1 DIALOG PREVIEW / LIHAT FOTO (DENGAN TAMPILAN GAMBAR ASLI)
+    // 0.1 DIALOG PREVIEW / LIHAT FOTO FULL SCREEN DENGAN FITUR ZOOM & PAN
     if (showImagePreviewDialog && pengantarUri != null) {
+        var scale by remember { mutableStateOf(1f) }
+        var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+
         AlertDialog(
             onDismissRequest = { showImagePreviewDialog = false },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(20.dp),
-            title = {
-                Text(
-                    text = "Pratinjau Surat Pengantar RT",
-                    style = AppTypography.HeadingMedium,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
+            containerColor = Color.Black,
+            shape = RoundedCornerShape(0.dp),
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            title = {},
             text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 5f)
+                                offset = if (scale == 1f) androidx.compose.ui.geometry.Offset.Zero else offset + pan
+                            }
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Surface(
+                    coil.compose.AsyncImage(
+                        model = pengantarUri,
+                        contentDescription = "Pratinjau Full Screen Surat Pengantar RT",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = GrayBackground,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            coil.compose.AsyncImage(
-                                model = pengantarUri,
-                                contentDescription = "Pratinjau Surat Pengantar RT",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                            )
-                        }
-                    }
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            ),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showImagePreviewDialog = false },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Tutup", style = AppTypography.ButtonText)
+                    Button(
+                        onClick = { showImagePreviewDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(text = "Tutup Pratinjau", style = AppTypography.ButtonText)
+                    }
                 }
             },
             dismissButton = {}
@@ -737,6 +743,7 @@ fun SuratUsahaScreen(
                                 ttl = tempatTanggalLahir,
                                 jk = jenisKelamin,
                                 agama = agama,
+                                statusPerkawinan = statusPerkawinan,
                                 pekerjaan = pekerjaan,
                                 alamat = alamatLengkap,
                                 namaUsaha = namaUsaha,
@@ -764,6 +771,7 @@ private fun createPengajuanItem(
     ttl: String,
     jk: String,
     agama: String,
+    statusPerkawinan: String,
     pekerjaan: String,
     alamat: String,
     namaUsaha: String,
@@ -781,6 +789,7 @@ private fun createPengajuanItem(
         tempatTanggalLahir = ttl,
         jenisKelamin = jk.ifBlank { "Laki-laki" },
         agama = agama,
+        statusPerkawinan = statusPerkawinan,
         pekerjaan = pekerjaan,
         alamatLengkap = alamat,
         namaUsaha = namaUsaha,

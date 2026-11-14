@@ -3,6 +3,7 @@ package com.sudes.purwodadi
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -191,7 +194,7 @@ fun DetailPengajuanScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU 2: DATA YANG DIINPUTKAN USER (TERMASUK DETAIL USAHA)
+            // KARTU 2: DATA YANG DIINPUTKAN USER (TERMASUK STATUS PERKAWINAN & DETAIL USAHA)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -315,56 +318,58 @@ fun DetailPengajuanScreen(
         }
     }
 
-    // DIALOG PRATINJAU FOTO ASLI PENGANTAR RT DARI WARGA
+    // DIALOG PRATINJAU FOTO FULL SCREEN DENGAN FITUR ZOOM & PAN
     if (showImagePreviewDialog && pengantarUriString.isNotBlank()) {
+        var scale by remember { mutableStateOf(1f) }
+        var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+
         AlertDialog(
             onDismissRequest = { showImagePreviewDialog = false },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(20.dp),
-            title = {
-                Text(
-                    text = "Pratinjau Surat Pengantar RT",
-                    style = AppTypography.HeadingMedium,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
+            containerColor = Color.Black,
+            shape = RoundedCornerShape(0.dp),
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            title = {},
             text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 5f)
+                                offset = if (scale == 1f) androidx.compose.ui.geometry.Offset.Zero else offset + pan
+                            }
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Surface(
+                    coil.compose.AsyncImage(
+                        model = Uri.parse(pengantarUriString),
+                        contentDescription = "Pratinjau Full Screen Surat Pengantar RT",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = GrayBackground,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            coil.compose.AsyncImage(
-                                model = Uri.parse(pengantarUriString),
-                                contentDescription = "Pratinjau Surat Pengantar RT",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                            )
-                        }
-                    }
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            ),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showImagePreviewDialog = false },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Tutup", style = AppTypography.ButtonText)
+                    Button(
+                        onClick = { showImagePreviewDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(text = "Tutup Pratinjau", style = AppTypography.ButtonText)
+                    }
                 }
             },
             dismissButton = {}

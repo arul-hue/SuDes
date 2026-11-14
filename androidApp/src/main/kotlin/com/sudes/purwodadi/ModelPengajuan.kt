@@ -15,6 +15,7 @@ data class PengajuanItem(
     val tempatTanggalLahir: String = "",
     val jenisKelamin: String = "",
     val agama: String = "",
+    val statusPerkawinan: String = "",
     val pekerjaan: String = "",
     val alamatLengkap: String = "",
     val namaUsaha: String = "",

@@ -3,6 +3,7 @@ package com.sudes.purwodadi
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ fun AdminEditPengajuanScreen(
     var ttl by remember { mutableStateOf(pengajuan.tempatTanggalLahir) }
     var jenisKelamin by remember { mutableStateOf(pengajuan.jenisKelamin) }
     var agama by remember { mutableStateOf(pengajuan.agama) }
+    var statusPerkawinan by remember { mutableStateOf(pengajuan.statusPerkawinan) }
     var pekerjaan by remember { mutableStateOf(pengajuan.pekerjaan) }
     var alamatLengkap by remember { mutableStateOf(pengajuan.alamatLengkap) }
 
@@ -39,13 +43,17 @@ fun AdminEditPengajuanScreen(
     var namaUsaha by remember { mutableStateOf(pengajuan.namaUsaha) }
     var lokasiUsaha by remember { mutableStateOf(pengajuan.lokasiUsaha) }
 
-    var nomorSurat by remember { mutableStateOf(pengajuan.nomorSurat) }
+    // Nomor surat diatur agar awalnya kosong jika bernilai "-" atau blank
+    var nomorSurat by remember {
+        mutableStateOf(if (pengajuan.nomorSurat == "-") "" else pengajuan.nomorSurat)
+    }
 
     // Pilihan Keputusan Kelurahan
     var isDiterima by remember { mutableStateOf(true) } // true = Diterima & Terbitkan, false = Ditolak
     var alasanDitolak by remember { mutableStateOf("") }
 
-    // State Dialog Konfirmasi & Preview Foto Lampiran
+    // State Validasi & Dialog
+    var showErrorValidation by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showImagePreviewDialog by remember { mutableStateOf(false) }
 
@@ -117,7 +125,7 @@ fun AdminEditPengajuanScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // KARTU FORMULIR EDIT DATA WARGA (BERISI DATA ASLI DARI INPUTAN USER)
+            // KARTU FORMULIR EDIT DATA WARGA
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -136,12 +144,48 @@ fun AdminEditPengajuanScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    AdminEditTextField(label = "Nama Lengkap", value = nama, onValueChange = { nama = it })
-                    AdminEditTextField(label = "NIK", value = nik, onValueChange = { nik = it })
-                    AdminEditTextField(label = "Tempat, Tanggal Lahir", value = ttl, onValueChange = { ttl = it })
-                    AdminEditTextField(label = "Jenis Kelamin", value = jenisKelamin, onValueChange = { jenisKelamin = it })
-                    AdminEditTextField(label = "Agama", value = agama, onValueChange = { agama = it })
-                    AdminEditTextField(label = "Pekerjaan", value = pekerjaan, onValueChange = { pekerjaan = it })
+                    AdminEditTextField(
+                        label = "Nama Lengkap",
+                        value = nama,
+                        onValueChange = { nama = it },
+                        isError = showErrorValidation && nama.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "NIK",
+                        value = nik,
+                        onValueChange = { nik = it },
+                        isError = showErrorValidation && nik.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "Tempat, Tanggal Lahir",
+                        value = ttl,
+                        onValueChange = { ttl = it },
+                        isError = showErrorValidation && ttl.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "Jenis Kelamin",
+                        value = jenisKelamin,
+                        onValueChange = { jenisKelamin = it },
+                        isError = showErrorValidation && jenisKelamin.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "Agama",
+                        value = agama,
+                        onValueChange = { agama = it },
+                        isError = showErrorValidation && agama.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "Status Perkawinan",
+                        value = statusPerkawinan,
+                        onValueChange = { statusPerkawinan = it },
+                        isError = showErrorValidation && statusPerkawinan.isBlank()
+                    )
+                    AdminEditTextField(
+                        label = "Pekerjaan",
+                        value = pekerjaan,
+                        onValueChange = { pekerjaan = it },
+                        isError = showErrorValidation && pekerjaan.isBlank()
+                    )
 
                     AdminEditTextField(
                         label = "Alamat Lengkap",
@@ -149,23 +193,37 @@ fun AdminEditPengajuanScreen(
                         onValueChange = { alamatLengkap = it },
                         singleLine = false,
                         minLines = 3,
-                        maxLines = 4
+                        maxLines = 4,
+                        isError = showErrorValidation && alamatLengkap.isBlank()
                     )
 
-                    // Jika surat berupa Surat Keterangan Usaha, tampilkan field detail usaha milik user
+                    // Jika surat berupa Surat Keterangan Usaha, tampilkan field detail usaha
                     if (pengajuan.jenisSurat.contains("Usaha", ignoreCase = true)) {
-                        AdminEditTextField(label = "Nama / Deskripsi Usaha", value = namaUsaha, onValueChange = { namaUsaha = it })
+                        AdminEditTextField(
+                            label = "Nama / Deskripsi Usaha",
+                            value = namaUsaha,
+                            onValueChange = { namaUsaha = it },
+                            isError = showErrorValidation && namaUsaha.isBlank()
+                        )
                         AdminEditTextField(
                             label = "Lokasi Usaha",
                             value = lokasiUsaha,
                             onValueChange = { lokasiUsaha = it },
                             singleLine = false,
                             minLines = 2,
-                            maxLines = 3
+                            maxLines = 3,
+                            isError = showErrorValidation && lokasiUsaha.isBlank()
                         )
                     }
 
-                    AdminEditTextField(label = "Nomor Surat Resmi (Diterbitkan Admin)", value = nomorSurat, onValueChange = { nomorSurat = it })
+                    // Nomor surat resmi kini wajib diisi jika status diterima/terbitkan
+                    AdminEditTextField(
+                        label = "Nomor Surat Resmi (Diterbitkan Admin)",
+                        value = nomorSurat,
+                        onValueChange = { nomorSurat = it },
+                        placeholder = "Masukkan nomor surat resmi",
+                        isError = showErrorValidation && isDiterima && nomorSurat.isBlank()
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -308,11 +366,16 @@ fun AdminEditPengajuanScreen(
 
                     if (!isDiterima) {
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Alasan Penolakan (Wajib diisi jika ditolak):",
-                            style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
-                            color = RedRejectedText
-                        )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = "Alasan Penolakan (Wajib diisi jika ditolak):",
+                                style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                                color = RedRejectedText
+                            )
+                            if (showErrorValidation && alasanDitolak.isBlank()) {
+                                Text(text = "Wajib diisi", style = AppTypography.Caption.copy(color = Color(0xFFDC2626)))
+                            }
+                        }
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = alasanDitolak,
@@ -329,15 +392,38 @@ fun AdminEditPengajuanScreen(
                             shape = RoundedCornerShape(12.dp),
                             minLines = 2,
                             maxLines = 4,
+                            isError = showErrorValidation && alasanDitolak.isBlank(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = RedRejectedContainer.copy(alpha = 0.5f),
                                 unfocusedContainerColor = RedRejectedContainer.copy(alpha = 0.3f),
                                 focusedBorderColor = RedRejectedText,
                                 unfocusedBorderColor = RedRejectedText.copy(alpha = 0.5f),
-                                cursorColor = RedRejectedText
+                                cursorColor = RedRejectedText,
+                                errorBorderColor = Color(0xFFDC2626)
                             )
                         )
                     }
+                }
+            }
+
+            // PESAN PERINGATAN GLOBAL JIKA ADA FIELD KOSONG
+            val isFormIncomplete = nama.isBlank() || nik.isBlank() || ttl.isBlank() || jenisKelamin.isBlank() ||
+                    agama.isBlank() || statusPerkawinan.isBlank() || pekerjaan.isBlank() || alamatLengkap.isBlank() ||
+                    (isDiterima && nomorSurat.isBlank()) || (!isDiterima && alasanDitolak.isBlank())
+
+            if (showErrorValidation && isFormIncomplete) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFFEF2F2)
+                ) {
+                    Text(
+                        text = "⚠️ Mohon lengkapi seluruh isian formulir koreksi serta nomor surat/alasan penolakan yang bertanda merah di atas.",
+                        style = AppTypography.BodyRegular.copy(color = Color(0xFFDC2626), fontWeight = FontWeight.Medium),
+                        modifier = Modifier.padding(12.dp),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
@@ -345,7 +431,25 @@ fun AdminEditPengajuanScreen(
 
             // TOMBOL AKSI SIMPAN
             Button(
-                onClick = { showConfirmDialog = true },
+                onClick = {
+                    val isFormValid = nama.isNotBlank() &&
+                            nik.isNotBlank() &&
+                            ttl.isNotBlank() &&
+                            jenisKelamin.isNotBlank() &&
+                            agama.isNotBlank() &&
+                            statusPerkawinan.isNotBlank() &&
+                            pekerjaan.isNotBlank() &&
+                            alamatLengkap.isNotBlank() &&
+                            (!isDiterima || nomorSurat.isNotBlank()) &&
+                            (isDiterima || alasanDitolak.isNotBlank())
+
+                    if (isFormValid) {
+                        showErrorValidation = false
+                        showConfirmDialog = true
+                    } else {
+                        showErrorValidation = true
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
@@ -378,56 +482,58 @@ fun AdminEditPengajuanScreen(
         }
     }
 
-    // DIALOG PRATINJAU FOTO ASLI PENGANTAR RT DARI WARGA
+    // DIALOG PRATINJAU FOTO FULL SCREEN DENGAN FITUR ZOOM & PAN
     if (showImagePreviewDialog && pengajuan.pengantarUri.isNotBlank()) {
+        var scale by remember { mutableStateOf(1f) }
+        var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+
         AlertDialog(
             onDismissRequest = { showImagePreviewDialog = false },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(20.dp),
-            title = {
-                Text(
-                    text = "Pratinjau Surat Pengantar RT",
-                    style = AppTypography.HeadingMedium,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
+            containerColor = Color.Black,
+            shape = RoundedCornerShape(0.dp),
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            title = {},
             text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 5f)
+                                offset = if (scale == 1f) androidx.compose.ui.geometry.Offset.Zero else offset + pan
+                            }
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Surface(
+                    coil.compose.AsyncImage(
+                        model = Uri.parse(pengajuan.pengantarUri),
+                        contentDescription = "Pratinjau Full Screen Surat Pengantar RT",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = GrayBackground,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GrayBorder)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            coil.compose.AsyncImage(
-                                model = Uri.parse(pengajuan.pengantarUri),
-                                contentDescription = "Pratinjau Surat Pengantar RT Warga",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                            )
-                        }
-                    }
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            ),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showImagePreviewDialog = false },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Tutup", style = AppTypography.ButtonText)
+                    Button(
+                        onClick = { showImagePreviewDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
+                    ) {
+                        Text(text = "Tutup Pratinjau", style = AppTypography.ButtonText)
+                    }
                 }
             },
             dismissButton = {}
@@ -482,20 +588,20 @@ fun AdminEditPengajuanScreen(
                 Button(
                     onClick = {
                         showConfirmDialog = false
-                        // Buat salinan objek yang diperbarui oleh admin
                         val updatedItem = pengajuan.copy(
                             namaPemohon = nama,
                             nik = nik,
                             tempatTanggalLahir = ttl,
                             jenisKelamin = jenisKelamin,
                             agama = agama,
+                            statusPerkawinan = statusPerkawinan,
                             pekerjaan = pekerjaan,
                             alamatLengkap = alamatLengkap,
                             namaUsaha = namaUsaha,
                             lokasiUsaha = lokasiUsaha,
-                            nomorSurat = nomorSurat,
+                            nomorSurat = nomorSurat.ifBlank { "-" },
                             status = if (isDiterima) StatusPengajuan.DITERIMA else StatusPengajuan.DITOLAK,
-                            pesanStatus = if (isDiterima) "Surat telah diterbitkan oleh kelurahan." else alasanDitolak.ifBlank { "Pengajuan ditolak oleh admin." }
+                            pesanStatus = if (isDiterima) "Surat telah diterbitkan oleh kelurahan." else alasanDitolak
                         )
                         onSaveSuccess(updatedItem)
                     },
@@ -528,7 +634,7 @@ fun AdminEditPengajuanScreen(
     }
 }
 
-// Komponen Pendukung TextField Khusus Admin
+// Komponen Pendukung TextField Khusus Admin dengan Indikator Error Wajib Diisi
 @Composable
 fun AdminEditTextField(
     label: String,
@@ -537,7 +643,8 @@ fun AdminEditTextField(
     placeholder: String = "",
     singleLine: Boolean = true,
     minLines: Int = 1,
-    maxLines: Int = 1
+    maxLines: Int = 1,
+    isError: Boolean = false
 ) {
     val adminTextStyle = AppTypography.BodyRegular.copy(
         fontWeight = FontWeight.SemiBold,
@@ -545,11 +652,19 @@ fun AdminEditTextField(
     )
 
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        Text(
-            text = label,
-            style = AppTypography.Caption,
-            color = TextSecondary
-        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = label,
+                style = AppTypography.Caption,
+                color = if (isError) Color(0xFFDC2626) else TextSecondary
+            )
+            if (isError) {
+                Text(
+                    text = "Wajib diisi",
+                    style = AppTypography.Caption.copy(color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(
             value = value,
@@ -566,12 +681,14 @@ fun AdminEditTextField(
             singleLine = singleLine,
             minLines = minLines,
             maxLines = maxLines,
+            isError = isError,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
-                unfocusedBorderColor = GrayBorder,
-                focusedBorderColor = GreenDesaPrimary,
-                cursorColor = GreenDesaPrimary
+                unfocusedBorderColor = if (isError) Color(0xFFDC2626) else GrayBorder,
+                focusedBorderColor = if (isError) Color(0xFFDC2626) else GreenDesaPrimary,
+                cursorColor = GreenDesaPrimary,
+                errorBorderColor = Color(0xFFDC2626)
             )
         )
     }
