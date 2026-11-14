@@ -80,14 +80,12 @@ class MainActivity : ComponentActivity() {
                                 val tempList = mutableListOf<PengajuanItem>()
                                 for (doc in snapshot.documents) {
                                     try {
-                                        // Menggunakan model PengajuanItem secara langsung dengan aman
                                         val item = doc.toObject(PengajuanItem::class.java)
                                         if (item != null) {
                                             val finalItem = if (item.id.isBlank()) item.copy(id = doc.id) else item
                                             tempList.add(finalItem)
                                         }
                                     } catch (ex: Exception) {
-                                        // Fallback manual jika deserialisasi gagal, ambil seluruh atribut dokumen secara lengkap
                                         try {
                                             val id = doc.getString("id") ?: doc.id
                                             val jenisSurat = doc.getString("jenisSurat") ?: "Surat Keterangan Usaha"
@@ -97,12 +95,11 @@ class MainActivity : ComponentActivity() {
                                             val status = try { StatusPengajuan.valueOf(statusStr) } catch (err: Exception) { StatusPengajuan.PROSES }
                                             val pesanStatus = doc.getString("pesanStatus") ?: "Pengajuan Anda sedang diproses."
 
-                                            // Menangkap atribut lengkap agar tidak kosong di sisi admin/detail
                                             val nik = doc.getString("nik") ?: ""
                                             val tempatTanggalLahir = doc.getString("tempatTanggalLahir") ?: ""
                                             val jenisKelamin = doc.getString("jenisKelamin") ?: ""
                                             val agama = doc.getString("agama") ?: ""
-                                            val statusPerkawinan = doc.getString("statusPerkawinan") ?: "" // 👈 Ditangkap di fallback
+                                            val statusPerkawinan = doc.getString("statusPerkawinan") ?: ""
                                             val pekerjaan = doc.getString("pekerjaan") ?: ""
                                             val alamatLengkap = doc.getString("alamatLengkap") ?: ""
                                             val namaUsaha = doc.getString("namaUsaha") ?: ""
@@ -121,7 +118,7 @@ class MainActivity : ComponentActivity() {
                                                 tempatTanggalLahir = tempatTanggalLahir,
                                                 jenisKelamin = jenisKelamin,
                                                 agama = agama,
-                                                statusPerkawinan = statusPerkawinan, // 👈 Dimasukkan ke objek fallback
+                                                statusPerkawinan = statusPerkawinan,
                                                 pekerjaan = pekerjaan,
                                                 alamatLengkap = alamatLengkap,
                                                 namaUsaha = namaUsaha,
@@ -131,7 +128,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                             tempList.add(fallbackItem)
                                         } catch (innerEx: Exception) {
-                                            // Abaikan dokumen yang benar-benar korup
+                                            // Abaikan dokumen korup
                                         }
                                     }
                                 }
@@ -313,11 +310,12 @@ class MainActivity : ComponentActivity() {
                             AdminDashboardScreen(
                                 listPengajuan = listPengajuan,
                                 onDetailClicked = { pengajuanItem ->
+                                    // 👈 Mengarahkan admin ke layar detail khusus admin
                                     selectedPengajuanItem = pengajuanItem
-                                    selectedJenisSurat = pengajuanItem.jenisSurat
-                                    currentScreen = "admin_edit_pengajuan"
+                                    currentScreen = "admin_detail_pengajuan"
                                 },
                                 onSelesaikanClicked = { pengajuanItem ->
+                                    // Mengarahkan ke form edit/keputusan admin
                                     selectedPengajuanItem = pengajuanItem
                                     selectedJenisSurat = pengajuanItem.jenisSurat
                                     currentScreen = "admin_edit_pengajuan"
@@ -329,6 +327,20 @@ class MainActivity : ComponentActivity() {
                                     tabHistory.clear()
                                 }
                             )
+                        }
+                        "admin_detail_pengajuan" -> {
+                            // 👈 Layar Detail Pengajuan sisi Admin
+                            if (selectedPengajuanItem != null) {
+                                AdminDetailPengajuanScreen(
+                                    pengajuanItem = selectedPengajuanItem!!,
+                                    onBackClicked = { currentScreen = "admin_dashboard" },
+                                    onSelesaikanClicked = { pengajuanItem ->
+                                        selectedPengajuanItem = pengajuanItem
+                                        selectedJenisSurat = pengajuanItem.jenisSurat
+                                        currentScreen = "admin_edit_pengajuan"
+                                    }
+                                )
+                            }
                         }
                         "admin_edit_pengajuan" -> {
                             if (selectedPengajuanItem != null) {
@@ -396,19 +408,17 @@ class MainActivity : ComponentActivity() {
                                     selectedAlasanDitolak = pengajuanItem.pesanStatus
                                     selectedNamaFileRt = pengajuanItem.pengantarUri.ifBlank { "pengantar_rt.jpg" }
 
-                                    // DINAMIS: Susun list fields berdasarkan jenis surat yang diklik (Termasuk Status Perkawinan)
                                     val baseFields = mutableListOf(
                                         DetailFieldItem("Nama Lengkap", pengajuanItem.namaPemohon),
                                         DetailFieldItem("NIK", pengajuanItem.nik.ifBlank { "-" }),
                                         DetailFieldItem("Tempat, Tanggal Lahir", pengajuanItem.tempatTanggalLahir.ifBlank { "-" }),
                                         DetailFieldItem("Jenis Kelamin", pengajuanItem.jenisKelamin.ifBlank { "-" }),
                                         DetailFieldItem("Agama", pengajuanItem.agama.ifBlank { "-" }),
-                                        DetailFieldItem("Status Perkawinan", pengajuanItem.statusPerkawinan.ifBlank { "-" }), // 👈 Ditambahkan di sini
+                                        DetailFieldItem("Status Perkawinan", pengajuanItem.statusPerkawinan.ifBlank { "-" }),
                                         DetailFieldItem("Pekerjaan", pengajuanItem.pekerjaan.ifBlank { "-" }),
                                         DetailFieldItem("Alamat Lengkap", pengajuanItem.alamatLengkap.ifBlank { "-" })
                                     )
 
-                                    // Jika Surat Usaha, tambahkan field khusus usaha ke tampilan detail
                                     if (pengajuanItem.jenisSurat.contains("Usaha", ignoreCase = true)) {
                                         baseFields.add(DetailFieldItem("Nama / Deskripsi Usaha", pengajuanItem.namaUsaha.ifBlank { "-" }))
                                         baseFields.add(DetailFieldItem("Lokasi Usaha", pengajuanItem.lokasiUsaha.ifBlank { "-" }))

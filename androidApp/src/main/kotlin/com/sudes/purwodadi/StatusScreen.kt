@@ -29,28 +29,39 @@ fun StatusScreen(
 ) {
     var selectedTab by remember { mutableStateOf(1) } // Tab Status aktif di indeks 1
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Semua") }
+
+    var selectedStatusFilter by remember { mutableStateOf("Semua") }
+
+    // 👈 Diubah default-nya menjadi "Terbaru" agar data terbaru tampil paling atas secara default
+    var selectedSortOrder by remember { mutableStateOf("Terbaru") }
 
     val scrollState = rememberScrollState()
+    val sortScrollState = rememberScrollState()
     val filterScrollState = rememberScrollState()
 
-    // Menghitung jumlah untuk setiap kategori filter berdasarkan data real-time
+    // Menghitung jumlah untuk setiap kategori status berdasarkan data real-time
     val totalCount = listPengajuan.size
     val prosesCount = listPengajuan.count { it.status == StatusPengajuan.PROSES }
     val diterimaCount = listPengajuan.count { it.status == StatusPengajuan.DITERIMA }
     val ditolakCount = listPengajuan.count { it.status == StatusPengajuan.DITOLAK }
 
-    // Logika Filter & Pencarian
+    // Logika Filter Status & Pencarian, diikuti dengan Sorting Berdasarkan Waktu
     val filteredList = listPengajuan.filter { item ->
         val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
                 item.namaPemohon.contains(searchQuery, ignoreCase = true)
-        val matchFilter = when (selectedFilter) {
+        val matchFilter = when (selectedStatusFilter) {
             "Proses" -> item.status == StatusPengajuan.PROSES
             "Diterima" -> item.status == StatusPengajuan.DITERIMA
             "Ditolak" -> item.status == StatusPengajuan.DITOLAK
             else -> true
         }
         matchSearch && matchFilter
+    }.let { list ->
+        // Pengurutan berdasarkan waktu (ID menggunakan System.currentTimeMillis())
+        when (selectedSortOrder) {
+            "Terlama" -> list.sortedBy { it.id.toLongOrNull() ?: 0L }
+            else -> list.sortedByDescending { it.id.toLongOrNull() ?: 0L } // Default "Terbaru" ditaruh paling atas
+        }
     }
 
     Scaffold(
@@ -163,7 +174,40 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW DENGAN DYNAMIC COUNTER
+                // FILTER BARIS 1: URUTAN WAKTU (Terbaru / Terlama)
+                Text(
+                    text = "Urutkan Waktu:",
+                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(sortScrollState),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChipItem(
+                        text = "Terbaru",
+                        isSelected = selectedSortOrder == "Terbaru",
+                        onClick = { selectedSortOrder = "Terbaru" }
+                    )
+                    FilterChipItem(
+                        text = "Terlama",
+                        isSelected = selectedSortOrder == "Terlama",
+                        onClick = { selectedSortOrder = "Terlama" }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // FILTER BARIS 2: KATEGORI STATUS (Semua, Proses, Diterima, Ditolak)
+                Text(
+                    text = "Filter Status:",
+                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -172,23 +216,23 @@ fun StatusScreen(
                 ) {
                     FilterChipItem(
                         text = "Semua ($totalCount)",
-                        isSelected = selectedFilter == "Semua",
-                        onClick = { selectedFilter = "Semua" }
+                        isSelected = selectedStatusFilter == "Semua",
+                        onClick = { selectedStatusFilter = "Semua" }
                     )
                     FilterChipItem(
                         text = "Proses ($prosesCount)",
-                        isSelected = selectedFilter == "Proses",
-                        onClick = { selectedFilter = "Proses" }
+                        isSelected = selectedStatusFilter == "Proses",
+                        onClick = { selectedStatusFilter = "Proses" }
                     )
                     FilterChipItem(
                         text = "Diterima ($diterimaCount)",
-                        isSelected = selectedFilter == "Diterima",
-                        onClick = { selectedFilter = "Diterima" }
+                        isSelected = selectedStatusFilter == "Diterima",
+                        onClick = { selectedStatusFilter = "Diterima" }
                     )
                     FilterChipItem(
                         text = "Ditolak ($ditolakCount)",
-                        isSelected = selectedFilter == "Ditolak",
-                        onClick = { selectedFilter = "Ditolak" }
+                        isSelected = selectedStatusFilter == "Ditolak",
+                        onClick = { selectedStatusFilter = "Ditolak" }
                     )
                 }
 
@@ -214,7 +258,7 @@ fun StatusScreen(
                         PengajuanCard(
                             item = item,
                             onDetailClicked = { onDetailClicked(item) },
-                            onResubmitClicked = { onResubmitClicked(item) } // 👈 Mengirimkan objek 'item' secara utuh
+                            onResubmitClicked = { onResubmitClicked(item) }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }

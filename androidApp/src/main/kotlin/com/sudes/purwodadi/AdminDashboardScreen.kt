@@ -1,5 +1,7 @@
 package com.sudes.purwodadi
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -13,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
@@ -25,25 +28,50 @@ fun AdminDashboardScreen(
     onLogoutClicked: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Semua") }
+    var selectedStatusFilter by remember { mutableStateOf("Semua") }
+
+    // 👈 Diatur default-nya menjadi "Terlama" agar data terlama tampil paling atas secara default
+    var selectedSortOrder by remember { mutableStateOf("Terlama") }
 
     // State untuk mengontrol pop-up konfirmasi logout
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // State untuk mengelola aksi double press back di Dashboard Admin
+    var backPressedTime by remember { mutableStateOf(0L) }
+    val context = LocalContext.current
+
+    // BackHandler untuk mencegah langsung keluar dan meminta tekan sekali lagi
+    BackHandler {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - backPressedTime < 2000) {
+            (context as? android.app.Activity)?.finish()
+        } else {
+            backPressedTime = currentTime
+            Toast.makeText(context, "Tekan sekali lagi untuk keluar aplikasi", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val scrollState = rememberScrollState()
+    val sortScrollState = rememberScrollState()
     val filterScrollState = rememberScrollState()
 
-    // Logika Filter & Pencarian Admin berdasarkan data real-time
+    // Logika Filter Status, Pencarian, & Pengurutan Waktu Admin berdasarkan data real-time
     val filteredList = listPengajuan.filter { item ->
         val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
                 item.namaPemohon.contains(searchQuery, ignoreCase = true)
-        val matchFilter = when (selectedFilter) {
+        val matchFilter = when (selectedStatusFilter) {
             "Proses" -> item.status == StatusPengajuan.PROSES
             "Diterima" -> item.status == StatusPengajuan.DITERIMA
             "Ditolak" -> item.status == StatusPengajuan.DITOLAK
             else -> true
         }
         matchSearch && matchFilter
+    }.let { list ->
+        // Pengurutan berdasarkan waktu (ID menggunakan System.currentTimeMillis())
+        when (selectedSortOrder) {
+            "Terbaru" -> list.sortedByDescending { it.id.toLongOrNull() ?: 0L }
+            else -> list.sortedBy { it.id.toLongOrNull() ?: 0L } // Default "Terlama" ditaruh paling atas
+        }
     }
 
     Scaffold(
@@ -131,7 +159,40 @@ fun AdminDashboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW DENGAN COUNTER DINAMIS
+                // FILTER BARIS 1: URUTAN WAKTU (Terbaru / Terlama)
+                Text(
+                    text = "Urutkan Waktu:",
+                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(sortScrollState),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AdminFilterChipItem(
+                        text = "Terbaru",
+                        isSelected = selectedSortOrder == "Terbaru",
+                        onClick = { selectedSortOrder = "Terbaru" }
+                    )
+                    AdminFilterChipItem(
+                        text = "Terlama",
+                        isSelected = selectedSortOrder == "Terlama",
+                        onClick = { selectedSortOrder = "Terlama" }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // FILTER BARIS 2: KATEGORI STATUS (Semua, Proses, Diterima, Ditolak)
+                Text(
+                    text = "Filter Status:",
+                    style = AppTypography.Caption.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -140,23 +201,23 @@ fun AdminDashboardScreen(
                 ) {
                     AdminFilterChipItem(
                         text = "Semua (${listPengajuan.size})",
-                        isSelected = selectedFilter == "Semua",
-                        onClick = { selectedFilter = "Semua" }
+                        isSelected = selectedStatusFilter == "Semua",
+                        onClick = { selectedStatusFilter = "Semua" }
                     )
                     AdminFilterChipItem(
                         text = "Proses (${listPengajuan.count { it.status == StatusPengajuan.PROSES }})",
-                        isSelected = selectedFilter == "Proses",
-                        onClick = { selectedFilter = "Proses" }
+                        isSelected = selectedStatusFilter == "Proses",
+                        onClick = { selectedStatusFilter = "Proses" }
                     )
                     AdminFilterChipItem(
                         text = "Diterima (${listPengajuan.count { it.status == StatusPengajuan.DITERIMA }})",
-                        isSelected = selectedFilter == "Diterima",
-                        onClick = { selectedFilter = "Diterima" }
+                        isSelected = selectedStatusFilter == "Diterima",
+                        onClick = { selectedStatusFilter = "Diterima" }
                     )
                     AdminFilterChipItem(
                         text = "Ditolak (${listPengajuan.count { it.status == StatusPengajuan.DITOLAK }})",
-                        isSelected = selectedFilter == "Ditolak",
-                        onClick = { selectedFilter = "Ditolak" }
+                        isSelected = selectedStatusFilter == "Ditolak",
+                        onClick = { selectedStatusFilter = "Ditolak" }
                     )
                 }
 

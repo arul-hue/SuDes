@@ -35,7 +35,8 @@ data class DetailFieldItem(
 fun DetailPengajuanScreen(
     jenisSurat: String = "Surat Keterangan Usaha",
     status: StatusPengajuan = StatusPengajuan.PROSES,
-    tanggalPengajuan: String = "03 Nov 2026, 09.15 WIB",
+    tanggalPengajuan: String = "03 Nov 2026, 09.15 WIB", // Waktu awal user mengajukan surat
+    tanggalKeputusan: String = tanggalPengajuan,       // Waktu saat admin menolak/menerima
     alasanDitolak: String? = null,
     namaFileRt: String = "pengantar_rt.jpg",
     pengantarUriString: String = "", // 👈 Menangkap URI file asli yang diunggah warga
@@ -118,7 +119,7 @@ fun DetailPengajuanScreen(
                         StatusPengajuan.PROSES -> {
                             TimelineStepItem(
                                 title = "1. Diproses — Berkas dicek perangkat desa",
-                                date = tanggalPengajuan,
+                                date = tanggalPengajuan, // Waktu saat user mengajukan surat
                                 isCompleted = true,
                                 isProcess = true,
                                 showLine = true
@@ -134,14 +135,14 @@ fun DetailPengajuanScreen(
                         StatusPengajuan.DITERIMA -> {
                             TimelineStepItem(
                                 title = "1. Diproses — Berkas telah diverifikasi",
-                                date = tanggalPengajuan,
+                                date = tanggalPengajuan, // Waktu saat user mengajukan surat
                                 isCompleted = true,
                                 isProcess = false,
                                 showLine = true
                             )
                             TimelineStepItem(
                                 title = "2. Selesai — Surat dapat diambil di Balai Desa",
-                                date = "Silakan datang ke kantor desa membawa syarat fisik",
+                                date = tanggalKeputusan, // Waktu saat admin menerima/menyetujui
                                 isCompleted = true,
                                 isProcess = false,
                                 showLine = false
@@ -150,14 +151,14 @@ fun DetailPengajuanScreen(
                         StatusPengajuan.DITOLAK -> {
                             TimelineStepItem(
                                 title = "1. Diproses — Berkas diterima perangkat desa",
-                                date = tanggalPengajuan,
+                                date = tanggalPengajuan, // Waktu saat user mengajukan surat
                                 isCompleted = true,
                                 isProcess = false,
                                 showLine = true
                             )
                             TimelineStepItem(
                                 title = "2. Ditolak — Pengajuan perlu diperbaiki",
-                                date = tanggalPengajuan,
+                                date = tanggalKeputusan, // Waktu saat admin menolak
                                 isCompleted = true,
                                 isProcess = false,
                                 isRejected = true,

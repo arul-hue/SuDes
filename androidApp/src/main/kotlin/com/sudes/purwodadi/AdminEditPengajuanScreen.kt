@@ -22,6 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AdminEditPengajuanScreen(
@@ -227,7 +230,7 @@ fun AdminEditPengajuanScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Surat Pengantar RT (Lampiran Asli Warga)",
+                        text = "Surat Pengantar RT",
                         style = AppTypography.Caption,
                         color = TextSecondary
                     )
@@ -457,7 +460,7 @@ fun AdminEditPengajuanScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary)
             ) {
                 Text(
-                    text = "💾 Simpan Keputusan & Proses",
+                    text = "Simpan Keputusan & Proses",
                     style = AppTypography.ButtonText
                 )
             }
@@ -601,7 +604,9 @@ fun AdminEditPengajuanScreen(
                             lokasiUsaha = lokasiUsaha,
                             nomorSurat = nomorSurat.ifBlank { "-" },
                             status = if (isDiterima) StatusPengajuan.DITERIMA else StatusPengajuan.DITOLAK,
-                            pesanStatus = if (isDiterima) "Surat telah diterbitkan oleh kelurahan." else alasanDitolak
+                            pesanStatus = if (isDiterima) "Surat telah diterbitkan oleh kelurahan." else alasanDitolak,
+                            tanggal = getCurrentDateTime(), // Memperbarui waktu keputusan admin pada timeline
+                            pengantarUri = pengajuan.pengantarUri // Memastikan URI foto pengantar RT tidak hilang
                         )
                         onSaveSuccess(updatedItem)
                     },
@@ -692,4 +697,10 @@ fun AdminEditTextField(
             )
         )
     }
+}
+
+// Fungsi helper untuk mendapatkan tanggal dan waktu saat ini berformat Indonesia
+fun getCurrentDateTime(): String {
+    val sdf = SimpleDateFormat("dd MMM yyyy, HH.mm 'WIB'", Locale("id", "ID"))
+    return sdf.format(Date())
 }
