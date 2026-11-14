@@ -17,19 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
-data class AdminPengajuanItem(
-    val id: String,
-    val jenisSurat: String,
-    val namaPemohon: String,
-    val tanggal: String,
-    val status: StatusPengajuan,
-    val pesanStatus: String
-)
+// Catatan: ModelPengajuan dan StatusPengajuan menggunakan ModelPengajuan.kt terpusat
+// untuk menghindari error redeclaration.
 
 @Composable
 fun AdminDashboardScreen(
-    onDetailClicked: (String) -> Unit = {},
-    onSelesaikanClicked: (String) -> Unit = {},
+    listPengajuan: List<PengajuanItem> = emptyList(), // 👈 Menerima data real-time dari MainActivity
+    onDetailClicked: (PengajuanItem) -> Unit = {},    // 👈 Mengirimkan objek pengajuan lengkap
+    onSelesaikanClicked: (PengajuanItem) -> Unit = {},// 👈 Mengirimkan objek pengajuan lengkap
     onLogoutClicked: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -41,37 +36,7 @@ fun AdminDashboardScreen(
     val scrollState = rememberScrollState()
     val filterScrollState = rememberScrollState()
 
-    // Data tiruan pengajuan surat untuk panel admin
-    val listPengajuan = remember {
-        mutableStateListOf(
-            AdminPengajuanItem(
-                id = "1",
-                jenisSurat = "Surat Keterangan Domisili",
-                namaPemohon = "Sahal Alfarizi",
-                tanggal = "03 Nov 2026, 09.15",
-                status = StatusPengajuan.PROSES,
-                pesanStatus = "Sedang diverifikasi oleh Perangkat Desa"
-            ),
-            AdminPengajuanItem(
-                id = "2",
-                jenisSurat = "Surat Keterangan Usaha",
-                namaPemohon = "Roy Pratama",
-                tanggal = "01 Nov 2026, 14.20",
-                status = StatusPengajuan.DITERIMA,
-                pesanStatus = "Surat dapat diambil di Balai Desa"
-            ),
-            AdminPengajuanItem(
-                id = "3",
-                jenisSurat = "Surat Keterangan Tidak Mampu",
-                namaPemohon = "Syahrul Rek",
-                tanggal = "29 Okt 2026, 11.00",
-                status = StatusPengajuan.DITOLAK,
-                pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
-            )
-        )
-    }
-
-    // Logika Filter & Pencarian Admin
+    // Logika Filter & Pencarian Admin berdasarkan data real-time
     val filteredList = listPengajuan.filter { item ->
         val matchSearch = item.jenisSurat.contains(searchQuery, ignoreCase = true) ||
                 item.namaPemohon.contains(searchQuery, ignoreCase = true)
@@ -93,7 +58,7 @@ fun AdminDashboardScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            // HEADER ATAS HIJAU (Berisi Judul, Tulisan Admin, & Tombol Keluar)
+            // HEADER ATAS HIJAU
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +77,7 @@ fun AdminDashboardScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Admin", // Diubah dari "SUDES" menjadi "Admin"
+                            text = "Admin",
                             style = AppTypography.Caption.copy(
                                 color = Color.White.copy(alpha = 0.85f),
                                 fontWeight = FontWeight.Bold
@@ -169,7 +134,7 @@ fun AdminDashboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
+                // FILTER CHIPS ROW DENGAN COUNTER DINAMIS
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,14 +165,30 @@ fun AdminDashboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // DAFTAR KARTU PENGAJUAN ADMIN
-                filteredList.forEach { item ->
-                    AdminPengajuanCard(
-                        item = item,
-                        onSelesaikanClicked = { onSelesaikanClicked(item.id) },
-                        onDetailClicked = { onDetailClicked(item.jenisSurat) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                // JIKA KOSONG
+                if (filteredList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Belum ada pengajuan surat masuk.",
+                            style = AppTypography.BodyRegular,
+                            color = TextSecondary
+                        )
+                    }
+                } else {
+                    // DAFTAR KARTU PENGAJUAN ADMIN REAL-TIME
+                    filteredList.forEach { item ->
+                        AdminPengajuanCard(
+                            item = item,
+                            onSelesaikanClicked = { onSelesaikanClicked(item) },
+                            onDetailClicked = { onDetailClicked(item) }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
@@ -310,7 +291,7 @@ fun AdminFilterChipItem(text: String, isSelected: Boolean, onClick: () -> Unit) 
 
 @Composable
 fun AdminPengajuanCard(
-    item: AdminPengajuanItem,
+    item: PengajuanItem,
     onSelesaikanClicked: () -> Unit,
     onDetailClicked: () -> Unit
 ) {
@@ -387,18 +368,36 @@ fun AdminPengajuanCard(
                 }
             }
 
-            // Tombol "Selesaikan" khusus untuk kartu yang berstatus PROSES
-            if (item.status == StatusPengajuan.PROSES) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+            ) {
+                // Tombol Lihat Detail
+                OutlinedButton(
+                    onClick = onDetailClicked,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = GreenDesaLight),
+                    border = null,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                 ) {
+                    Text(
+                        text = "Lihat Detail",
+                        style = AppTypography.Caption.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = GreenDesaPrimary
+                        )
+                    )
+                }
+
+                // Tombol Selesaikan khusus untuk status PROSES
+                if (item.status == StatusPengajuan.PROSES) {
                     Button(
                         onClick = onSelesaikanClicked,
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = GreenDesaPrimary),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = "Selesaikan",

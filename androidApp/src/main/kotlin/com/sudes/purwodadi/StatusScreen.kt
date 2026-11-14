@@ -17,55 +17,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sudes.purwodadi.ui.theme.*
 
-data class PengajuanItem(
-    val jenisSurat: String,
-    val namaPemohon: String,
-    val tanggal: String,
-    val status: StatusPengajuan,
-    val pesanStatus: String
-)
-
-enum class StatusPengajuan {
-    PROSES, DITERIMA, DITOLAK
-}
+// Catatan: data class PengajuanItem dan enum StatusPengajuan sudah ada di ModelPengajuan.kt,
+// jadi tidak dideklarasikan ulang di sini agar terhindar dari error Redeclaration.
 
 @Composable
 fun StatusScreen(
+    listPengajuan: List<PengajuanItem> = emptyList(), // 👈 Menerima list data real-time dari MainActivity
     onTabSelected: (Int) -> Unit = {},
-    onDetailClicked: (String) -> Unit = {},
-    onResubmitClicked: (String) -> Unit = {} // Callback baru untuk ajukan ulang dari StatusScreen
+    onDetailClicked: (PengajuanItem) -> Unit = {},    // 👈 Mengirimkan objek PengajuanItem lengkap
+    onResubmitClicked: (String) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(1) } // Tab Status aktif di indeks 1
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Semua") }
 
     val scrollState = rememberScrollState()
-    val filterScrollState = rememberScrollState() // State khusus untuk scroll horizontal filter
+    val filterScrollState = rememberScrollState()
 
-    // Data tiruan pengajuan surat
-    val listPengajuan = listOf(
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Domisili",
-            namaPemohon = "Sahal Aw",
-            tanggal = "03 Nov 2026, 09.15",
-            status = StatusPengajuan.PROSES,
-            pesanStatus = "Berkas dicek perangkat desa"
-        ),
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Usaha",
-            namaPemohon = "Roy UX",
-            tanggal = "01 Nov 2026, 14.20",
-            status = StatusPengajuan.DITERIMA,
-            pesanStatus = "Surat dapat diambil di Balai Desa"
-        ),
-        PengajuanItem(
-            jenisSurat = "Surat Keterangan Tidak Mampu",
-            namaPemohon = "Syahrul Rek",
-            tanggal = "29 Okt 2026, 11.00",
-            status = StatusPengajuan.DITOLAK,
-            pesanStatus = "Foto surat pengantar RT buram dan tanda tangan Ketua RT belum terlihat jelas. Mohon unggah ulang."
-        )
-    )
+    // Menghitung jumlah untuk setiap kategori filter berdasarkan data real-time
+    val totalCount = listPengajuan.size
+    val prosesCount = listPengajuan.count { it.status == StatusPengajuan.PROSES }
+    val diterimaCount = listPengajuan.count { it.status == StatusPengajuan.DITERIMA }
+    val ditolakCount = listPengajuan.count { it.status == StatusPengajuan.DITOLAK }
 
     // Logika Filter & Pencarian
     val filteredList = listPengajuan.filter { item ->
@@ -92,7 +65,7 @@ fun StatusScreen(
                     selected = selectedTab == 0,
                     onClick = {
                         selectedTab = 0
-                        onTabSelected(0) // Melapor ke MainActivity untuk pindah ke Beranda
+                        onTabSelected(0)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -108,7 +81,7 @@ fun StatusScreen(
                     selected = selectedTab == 1,
                     onClick = {
                         selectedTab = 1
-                        onTabSelected(1) // Melapor ke MainActivity
+                        onTabSelected(1)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -124,7 +97,7 @@ fun StatusScreen(
                     selected = selectedTab == 2,
                     onClick = {
                         selectedTab = 2
-                        onTabSelected(2) // Melapor ke MainActivity untuk pindah ke Profil
+                        onTabSelected(2)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = GreenDesaPrimary,
@@ -190,30 +163,30 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FILTER CHIPS ROW DENGAN HORIZONTAL SCROLL
+                // FILTER CHIPS ROW DENGAN DYNAMIC COUNTER
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(filterScrollState), // Mengaktifkan geser menyamping
+                        .horizontalScroll(filterScrollState),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChipItem(
-                        text = "Semua (3)",
+                        text = "Semua ($totalCount)",
                         isSelected = selectedFilter == "Semua",
                         onClick = { selectedFilter = "Semua" }
                     )
                     FilterChipItem(
-                        text = "Proses (1)",
+                        text = "Proses ($prosesCount)",
                         isSelected = selectedFilter == "Proses",
                         onClick = { selectedFilter = "Proses" }
                     )
                     FilterChipItem(
-                        text = "Diterima (1)",
+                        text = "Diterima ($diterimaCount)",
                         isSelected = selectedFilter == "Diterima",
                         onClick = { selectedFilter = "Diterima" }
                     )
                     FilterChipItem(
-                        text = "Ditolak (1)",
+                        text = "Ditolak ($ditolakCount)",
                         isSelected = selectedFilter == "Ditolak",
                         onClick = { selectedFilter = "Ditolak" }
                     )
@@ -221,14 +194,30 @@ fun StatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // DAFTAR KARTU PENGAJUAN
-                filteredList.forEach { item ->
-                    PengajuanCard(
-                        item = item,
-                        onDetailClicked = { onDetailClicked(item.jenisSurat) },
-                        onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                // JIKA DAFTAR KOSONG
+                if (filteredList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Belum ada riwayat pengajuan surat.",
+                            style = AppTypography.BodyRegular,
+                            color = TextSecondary
+                        )
+                    }
+                } else {
+                    // DAFTAR KARTU PENGAJUAN REAL-TIME
+                    filteredList.forEach { item ->
+                        PengajuanCard(
+                            item = item,
+                            onDetailClicked = { onDetailClicked(item) },
+                            onResubmitClicked = { onResubmitClicked(item.jenisSurat) }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
@@ -338,7 +327,6 @@ fun PengajuanCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Jika status ditolak, tampilkan Tombol Ajukan Ulang & Lihat Detail
             if (item.status == StatusPengajuan.DITOLAK) {
                 Button(
                     onClick = onResubmitClicked,

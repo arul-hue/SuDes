@@ -40,6 +40,7 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("splash") }
                 val isLoading by authViewModel.isLoading.collectAsState()
 
+                // State Profil Pengguna yang Aktif
                 var namaLengkapUser by remember { mutableStateOf("Warga") }
                 var emailUser by remember { mutableStateOf("") }
                 var nikUser by remember { mutableStateOf("") }
@@ -51,6 +52,9 @@ class MainActivity : ComponentActivity() {
                 var roleUser by remember { mutableStateOf("warga") }
 
                 var showIncompleteProfileDialog by remember { mutableStateOf(false) }
+
+                // SINKRONISASI REAL-TIME: Daftar Pengajuan Surat Warga & Admin
+                val listPengajuan = remember { mutableStateListOf<PengajuanItem>() }
 
                 val fetchUserData = {
                     val userId = auth.currentUser?.uid
@@ -84,10 +88,11 @@ class MainActivity : ComponentActivity() {
                 val tabHistory = remember { mutableStateListOf("home") }
                 var backPressedTime by remember { mutableStateOf(0L) }
 
+                // State untuk layar detail pengajuan
                 var selectedJenisSurat by remember { mutableStateOf("Surat Keterangan Domisili") }
                 var selectedStatusSurat by remember { mutableStateOf(StatusPengajuan.PROSES) }
                 var selectedAlasanDitolak by remember { mutableStateOf<String?>(null) }
-                var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt03.jpg") }
+                var selectedNamaFileRt by remember { mutableStateOf("pengantar_rt.jpg") }
 
                 var selectedFields by remember {
                     mutableStateOf(
@@ -108,7 +113,7 @@ class MainActivity : ComponentActivity() {
                 if (currentScreen == "home" || currentScreen == "status" || currentScreen == "profile") {
                     BackHandler {
                         if (tabHistory.size > 1) {
-                            tabHistory.removeAt(tabHistory.size - 1)
+                            tabHistory.removeAt(tabHistory.size - 1) // 👈 Diperbaiki di sini
                             currentScreen = tabHistory.last()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -205,8 +210,15 @@ class MainActivity : ComponentActivity() {
                         }
                         "admin_dashboard" -> {
                             AdminDashboardScreen(
-                                onDetailClicked = { _ -> },
-                                onSelesaikanClicked = { currentScreen = "admin_edit_pengajuan" },
+                                listPengajuan = listPengajuan, // 👈 Terhubung real-time
+                                onDetailClicked = { pengajuanItem ->
+                                    selectedJenisSurat = pengajuanItem.jenisSurat
+                                    currentScreen = "admin_edit_pengajuan"
+                                },
+                                onSelesaikanClicked = { pengajuanItem ->
+                                    selectedJenisSurat = pengajuanItem.jenisSurat
+                                    currentScreen = "admin_edit_pengajuan"
+                                },
                                 onLogoutClicked = {
                                     auth.signOut()
                                     currentScreen = "login"
@@ -216,6 +228,13 @@ class MainActivity : ComponentActivity() {
                         }
                         "admin_edit_pengajuan" -> {
                             AdminEditPengajuanScreen(
+                                jenisSurat = selectedJenisSurat,
+                                namaPemohonAwal = namaLengkapUser,
+                                nikAwal = nikUser,
+                                ttlAwal = tempatTglLahirUser,
+                                agamaAwal = agamaUser,
+                                pekerjaanAwal = pekerjaanUser,
+                                alamatLengkapAwal = alamatUser,
                                 onBackClicked = { currentScreen = "admin_dashboard" },
                                 onSaveSuccess = { currentScreen = "admin_dashboard" }
                             )
@@ -247,6 +266,7 @@ class MainActivity : ComponentActivity() {
                         }
                         "status" -> {
                             StatusScreen(
+                                listPengajuan = listPengajuan, // 👈 Terhubung ke state list real-time
                                 onTabSelected = { tabIndex ->
                                     val target = when (tabIndex) {
                                         0 -> "home"
@@ -258,15 +278,15 @@ class MainActivity : ComponentActivity() {
                                         tabHistory.add(target)
                                     }
                                 },
-                                onDetailClicked = { jenisSurat ->
-                                    selectedJenisSurat = jenisSurat
+                                onDetailClicked = { pengajuanItem ->
+                                    selectedJenisSurat = pengajuanItem.jenisSurat
+                                    selectedStatusSurat = pengajuanItem.status
+                                    selectedAlasanDitolak = pengajuanItem.pesanStatus
                                     currentScreen = "detail_pengajuan"
                                 },
                                 onResubmitClicked = { jenisSurat ->
-                                    when {
-                                        jenisSurat.contains("Usaha", ignoreCase = true) -> currentScreen = "surat_usaha"
-                                        jenisSurat.contains("Domisili", ignoreCase = true) -> currentScreen = "surat_domisili"
-                                        else -> currentScreen = "home"
+                                    if (jenisSurat.contains("Usaha", ignoreCase = true)) {
+                                        currentScreen = "surat_usaha"
                                     }
                                 }
                             )
@@ -279,7 +299,7 @@ class MainActivity : ComponentActivity() {
                                 namaFileRt = selectedNamaFileRt,
                                 fields = selectedFields,
                                 onBackClicked = { currentScreen = "status" },
-                                onResubmitClicked = { currentScreen = "home" }
+                                onResubmitClicked = { currentScreen = "surat_usaha" }
                             )
                         }
                         "profile" -> {
@@ -310,7 +330,6 @@ class MainActivity : ComponentActivity() {
                                     tabHistory.clear()
                                 },
                                 onGantiEmailClicked = { currentScreen = "ganti_email" },
-                                // onGantiNoHpClicked sudah dihapus
                                 onGantiPasswordClicked = { currentScreen = "ganti_password" },
                                 onVideoTutorialClicked = { currentScreen = "video_tutorial" },
                                 onBantuanFaqClicked = { currentScreen = "bantuan_faq" },
@@ -345,12 +364,27 @@ class MainActivity : ComponentActivity() {
                                 tabHistory.clear()
                             }
                         )
-                        // "ganti_nohp" sudah dihapus total dari sini
                         "ganti_password" -> GantiPasswordScreen(onBackClicked = { currentScreen = "profile" }, onSaveSuccess = { currentScreen = "profile" })
                         "video_tutorial" -> VideoTutorialScreen(onBackClicked = { currentScreen = "profile" })
                         "bantuan_faq" -> BantuanFaqScreen(onBackClicked = { currentScreen = "profile" })
                         "tentang_aplikasi" -> TentangAplikasiScreen(onBackClicked = { currentScreen = "profile" })
-                        "surat_usaha" -> SuratUsahaScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
+
+                        // SINKRONISASI SURAT USAHA KE STATUS SCREEN & ADMIN DASHBOARD
+                        "surat_usaha" -> SuratUsahaScreen(
+                            initialNama = namaLengkapUser,
+                            initialNik = nikUser,
+                            initialTempatTgl = tempatTglLahirUser,
+                            //initialJenisKelamin = "Laki-laki",
+                            initialAgama = agamaUser,
+                            initialStatusPerkawinan = statusUser,
+                            initialPekerjaan = pekerjaanUser,
+                            initialAlamat = alamatUser,
+                            onBackClicked = { currentScreen = "home" },
+                            onSubmitPengajuan = { itemBaru ->
+                                listPengajuan.add(0, itemBaru)
+                                currentScreen = "status"
+                            }
+                        )
                         "surat_domisili" -> SuratDomisiliScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                         "surat_kehilangan" -> SuratKehilanganScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
                         "surat_kematian" -> SuratKematianScreen(onBackClicked = { currentScreen = "home" }, onSubmitSuccess = { currentScreen = "home" })
